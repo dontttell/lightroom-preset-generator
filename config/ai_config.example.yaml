@@ -1,0 +1,11 @@
+# AI 服务配置示例 — 复制为 ai_config.local.yaml 后在软件「设置」中填写
+# UI 仅暴露 API Key / Base URL / 模型；provider 由程序写入 openai_compatible
+
+provider: ""
+api_key: ""
+base_url: ""
+model: ""
+
+analysis:
+  language: zh-CN
+  prompt_file: config/prompts/style_analysis.txt

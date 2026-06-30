@@ -21,6 +21,12 @@ from gui.main_window import run_app  # noqa: E402
 
 
 def main() -> int:
+    import gui.copy as copy_mod
+    import gui.widgets as widgets_mod
+    from config.settings import SETTINGS
+
+    print(f"UI {SETTINGS.ui_version} | widgets: {widgets_mod.__file__}")
+    print(f"plate.pick = {copy_mod.COPY.get('plate.pick')!r}")
     return run_app()
 
 

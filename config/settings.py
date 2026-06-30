@@ -40,7 +40,8 @@ class AppSettings:
     camera_raw_version: str = "15.4"
 
     # GUI
-    window_title: str = "Lightroom 预设生成器"
+    window_title: str = "Lightroom 预设学习器"
+    ui_version: str = "1.6.0"
     window_min_width: int = 1100
     window_min_height: int = 720
 

@@ -1,0 +1,26 @@
+---
+description: Lightroom 预设学习器 — 项目背景、UI 规格与近期实现决策
+alwaysApply: true
+---
+
+# Lightroom 预设学习器 — 项目记忆
+
+## 产品定位
+- **路径 A**：已精确识别 LR 编辑数据 → 精确提取 XMP，无需 AI
+- **路径 B**：未能精确识别 → 用户确认后 AI 分析 → 参考 XMP/LUT + 底片试看
+- 导出须用户主动触发；API 可选
+- **用户向文案**不用 metadata/元数据（见 UI §11.2）；代码/架构仍可用 metadata 作技术名
+
+## 文档
+- 功能：`docs/PRODUCT_SPEC_v2.md`
+- UI/UX：`docs/UI_UX_DESIGN.md`（**v1.6.1**）
+- 文案：`gui/copy.py` 对齐 §11
+
+## UI v1.6 底片试看（§3.4）
+- **仅左栏** `ImageZone`：参考图在上 + 底片预览在下；**已删除**右栏 `PlateControlCard`
+- **启动即显示**底片区 + 「上传底片」「应用 LUT 预览」（LUT 未就绪时**禁用**）
+- 路径 A：隐藏底片预览区
+- 路径 B + LUT 就绪：启用上传；有底片后启用应用 LUT
+
+## 启动
+- `run.bat` → `venv\Scripts\python.exe` + `scripts/verify_ui.py`

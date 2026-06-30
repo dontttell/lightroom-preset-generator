@@ -14,10 +14,45 @@ from typing import Any, Dict, List, Optional
 class ParameterStatus(str, Enum):
     """参数推测状态。"""
 
-    OK = "ok"  # 成功推测
+    OK = "ok"  # 成功推测或精确提取
     MISSING = "missing"  # 模块被禁用或未运行
     FAILED = "failed"  # 运行出错
     SKIPPED = "skipped"  # 数据不足，主动跳过
+    INFERRED = "inferred"  # AI 参考推测
+
+
+class AnalysisMode(str, Enum):
+    """分析路径。"""
+
+    PRECISE = "precise"  # metadata 精确提取
+    AI_LEARNING = "ai_learning"  # AI 辅助学习
+    PENDING = "pending"  # 已打开图片，尚未完成分析
+
+
+@dataclass
+class AiLearningReport:
+    """AI 风格分析结果（路径 B）。"""
+
+    overall_impression: str = ""
+    editing_steps: List[Dict[str, Any]] = field(default_factory=list)
+    priority_adjustments: List[str] = field(default_factory=list)
+    parameters: List[ParameterResult] = field(default_factory=list)
+    analysis_ms: float = 0.0
+    raw_json: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ImageSession:
+    """一次图片会话的完整状态。"""
+
+    image_path: str
+    mode: AnalysisMode = AnalysisMode.PENDING
+    metadata_message: str = ""
+    parameters: List[ParameterResult] = field(default_factory=list)
+    parameter_groups: List[tuple] = field(default_factory=list)  # (name, [ParameterResult])
+    ai_report: Optional[AiLearningReport] = None
+    scan_ms: float = 0.0
+    lut_cube: Any = None  # numpy ndarray，AI 分析后生成
 
 
 @dataclass
@@ -45,11 +80,12 @@ class ParameterResult:
 
     @property
     def is_available(self) -> bool:
-        return self.status == ParameterStatus.OK and self.value is not None
+        return self.status in (ParameterStatus.OK, ParameterStatus.INFERRED) and self.value is not None
 
     def to_display_line(self) -> str:
         if self.is_available:
-            return f"{self.display_name}: {self.value}  (置信度 {self.confidence:.0%})"
+            tag = "精确" if self.confidence >= 1.0 else f"推测 {self.confidence:.0%}"
+            return f"{self.display_name}: {self.value}  ({tag})"
         hint = self.message or "未推测"
         return f"{self.display_name}: [缺失] {hint}"
 
