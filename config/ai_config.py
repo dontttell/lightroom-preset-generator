@@ -12,6 +12,8 @@ from pathlib import Path
 
 import yaml
 
+from config.provider_presets import get_preset, infer_preset_id
+
 ROOT = Path(__file__).resolve().parent.parent
 LOCAL_CONFIG = ROOT / "config" / "ai_config.local.yaml"
 EXAMPLE_CONFIG = ROOT / "config" / "ai_config.example.yaml"
@@ -34,6 +36,7 @@ class AnalysisSettings:
 @dataclass
 class AiConfig:
     provider: str = ""
+    provider_preset: str = ""
     api_key: str = ""
     base_url: str = ""
     model: str = ""
@@ -52,11 +55,18 @@ class AiConfig:
         model = self.model.strip()
         return bool(key and model)
 
+    def resolved_provider_preset(self) -> str:
+        return infer_preset_id(
+            base_url=self.base_url,
+            provider=self.provider,
+            provider_preset=self.provider_preset,
+        )
+
     def effective_provider(self) -> str:
-        """内部 provider；UI 不展示，保存时默认 openai_compatible。"""
+        """HTTP 适配器类型；各预设均走 OpenAI 兼容 Vision API。"""
         p = self.provider.strip().lower()
-        if p in ("openai", "openai_compatible", "custom"):
-            return p
+        if p in ("openai", "openai_compatible", "custom", "volcengine"):
+            return "openai_compatible"
         return "openai_compatible"
 
     def resolved_api_key(self) -> str:
@@ -66,9 +76,10 @@ class AiConfig:
         url = self.base_url.strip()
         if url:
             return url.rstrip("/")
-        if self.provider.strip().lower() in ("openai", "openai_compatible", "") or not self.provider.strip():
-            return "https://api.openai.com/v1"
-        return url
+        preset = get_preset(self.resolved_provider_preset())
+        if preset and preset.default_base_url:
+            return preset.default_base_url.rstrip("/")
+        return "https://api.openai.com/v1"
 
     def analysis_settings(self) -> AnalysisSettings:
         return AnalysisSettings(
@@ -100,8 +111,10 @@ class AiConfig:
 
     def status_message(self) -> str:
         if self.is_ready():
-            url_hint = self.base_url.strip() or "默认 OpenAI 端点"
-            return f"已配置 · 模型 {self.model} · {url_hint}"
+            preset = get_preset(self.resolved_provider_preset())
+            preset_label = preset.label if preset else self.resolved_provider_preset()
+            url_hint = self.base_url.strip() or self.resolved_base_url()
+            return f"已配置 · {preset_label} · {self.model} · {url_hint}"
         return "未配置 — 请在设置中填写 API Key 与模型"
 
 
@@ -112,10 +125,20 @@ def load_ai_config() -> AiConfig:
     with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     analysis = data.get("analysis") or {}
+    provider = str(data.get("provider") or "")
+    base_url = str(data.get("base_url") or "")
+    provider_preset = str(data.get("provider_preset") or "")
+    if not provider_preset:
+        provider_preset = infer_preset_id(
+            base_url=base_url,
+            provider=provider,
+            provider_preset="",
+        )
     return AiConfig(
-        provider=str(data.get("provider") or ""),
+        provider=provider,
+        provider_preset=provider_preset,
         api_key=str(data.get("api_key") or ""),
-        base_url=str(data.get("base_url") or ""),
+        base_url=base_url,
         model=str(data.get("model") or ""),
         language=str(analysis.get("language") or "zh-CN"),
         prompt_file=str(analysis.get("prompt_file") or ""),
@@ -128,9 +151,11 @@ def load_ai_config() -> AiConfig:
 
 def save_ai_config(cfg: AiConfig) -> None:
     LOCAL_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    preset_id = cfg.resolved_provider_preset()
     provider = cfg.provider.strip() or cfg.effective_provider()
     payload = {
         "provider": provider,
+        "provider_preset": preset_id,
         "api_key": cfg.api_key,
         "base_url": cfg.base_url,
         "model": cfg.model,

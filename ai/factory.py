@@ -14,6 +14,6 @@ def create_analyzer(cfg: AiConfig | None = None) -> BaseAiProvider:
             "AI 服务未配置。请在「设置」中填写 API Key 与模型名称。"
         )
     provider = cfg.effective_provider()
-    if provider in ("openai", "openai_compatible", "custom"):
+    if provider in ("openai", "openai_compatible", "custom", "volcengine"):
         return OpenAiCompatibleProvider(cfg)
     raise AiNotConfiguredError(f"不支持的服务商: {cfg.provider}")
