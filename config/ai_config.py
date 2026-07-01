@@ -93,10 +93,10 @@ class AiConfig:
         lang = self.language.lower()
         if lang.startswith("en"):
             return (
-                "Analyze the color grading style of this image. "
-                "Output JSON only, conforming to schema style_analysis.v1."
+                "Analyze this image. Classify scene type and subtype first (portrait/landscape/mixed and lighting), "
+                "then output style_analysis.v1 JSON using that category's reference ranges; parameters must be non-zero and plausible."
             )
-        return "请分析这张图片的调色风格，仅输出 JSON（符合 style_analysis.v1 规范）。"
+        return "请分析这张图片。先识别场景大类与子类（人像/风光/混合及光线环境），再按该类别参考区间输出 style_analysis.v1 JSON；parameters 须非零且合理。"
 
     def status_message(self) -> str:
         if self.is_ready():
