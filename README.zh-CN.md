@@ -14,7 +14,7 @@
 - [目标与原则](#目标与原则)
 - [程序如何工作](#程序如何工作)
 - [快速上手](#快速上手)
-- [文档索引](#文档索引)
+- [文档指南](#文档指南)
 - [项目结构](#项目结构)
 - [版本演进：v1 → v2](#版本演进v1--v2)
 - [当前不足](#当前不足)
@@ -71,6 +71,36 @@ flowchart TD
 | **导出** | XMP（对话框内可选 LUT） | 参考 XMP / 可选 `.cube` LUT |
 | **底片试看** | 隐藏 | AI 分析完成后可用（UI v1.6，仅左栏一处） |
 
+> **路径 B 备注（AI 调用路径）：** 路径 B 指 **AI 调用链路**，不是独立程序。精确识别失败后，用户须点击「开始 AI 分析」；后台 Worker 加载 system prompt → 调用 OpenAI 兼容 Vision API → 按 `style_analysis.v1` 校验 JSON → 可选烘焙内存 LUT 供底片试看。详见 [路径 B — AI 调用链](#路径-b--ai-调用链开发者备注) 与 [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md)。
+
+### 路径 B — AI 调用链（开发者备注）
+
+路径 B = 用户向文案 **「未能精确识别 → AI 辅助学习」**；代码中为 `AnalysisMode.AI_LEARNING`。
+
+```
+gui/main_window.run_ai_analysis()
+  └─ gui/workers.AiAnalysisWorker
+       ├─ config/ai_config.load_ai_config()
+       ├─ ai/factory.create_analyzer()
+       │    └─ ai/openai_compatible_provider.analyze()
+       │         ├─ 读取 config/prompts/style_analysis.txt（或 .en.txt）
+       │         ├─ HTTP Vision API（图片 + system prompt）
+       │         ├─ ai/response_parser.parse_json_content()
+       │         └─ ai/validator.normalize_style_analysis()
+       ├─ ai/service.style_result_to_report()
+       └─ ai/service.build_lut_for_report() → lut/lut_generator（可选 cube）
+```
+
+| 阶段 | 主要代码 | 对应文档 |
+|------|----------|----------|
+| 触发与线程 | `gui/main_window.py`, `gui/workers.py` | [`CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) |
+| API 与 Prompt | `ai/openai_compatible_provider.py`, `config/prompts/` | [`AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) |
+| JSON 契约 | `ai/validator.py`, `ai/parameter_registry.py`, `schemas/` | [`AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) |
+| Prompt 变更记录 | `config/prompts/*.txt` | [`PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) |
+| LUT 试看 | `lut/lut_generator.py`, `lut/lut_applier.py` | [`AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) §6 |
+
+**在 Cursor 中改路径 B：** `@docs/AI_ARCHITECTURE.md`（流程 + SOP）· `@docs/PROMPT_CHANGELOG.md`（若改 prompt）· `@docs/AI_RESPONSE_SCHEMA.md`（若改 JSON 字段）。
+
 ---
 
 ## 快速上手
@@ -117,20 +147,54 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 
 ---
 
-## 文档索引
+## 文档指南
 
-| 层级 | 文档 | 适合谁 |
-|------|------|--------|
-| **总索引** | [`docs/README.md`](docs/README.md) | 人读 / AI 读 / 机器读分层说明 |
-| **产品** | [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | 做什么、验收 |
-| **界面 / 文案** | [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | 布局、§11 文案库 |
-| **代码架构** | [`docs/CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) | 模块、双路径调用链 |
-| **AI / Prompt** | [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) | 改 prompt、Provider、SOP |
-| **JSON 契约** | [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) + [`schemas/`](schemas/) | 路径 B 响应格式 |
-| **编码 Agent** | [`AGENTS.md`](AGENTS.md) + [`.cursor/rules/`](.cursor/rules/) | Cursor 等工具规则 |
-| **运行时文案** | [`gui/copy.py`](gui/copy.py) | 与 UI 文档 §11 对齐 |
+本 README 是对外**总介绍**。日常改代码时，按任务打开对应文档 — 在 Cursor 里可直接 `@` 文件路径。
 
-窗口标题可查看 UI 版本，例如：`Lightroom 预设学习器 (UI 1.6.0)`。
+**完整分层说明（人读 / AI 读 / 机器读）：** [`docs/README.md`](docs/README.md)
+
+### 当前文档清单与职责
+
+| 文档 | 类型 | 负责内容 |
+|------|------|----------|
+| [`README.md`](README.md) | 入口 · 英文 | 对外概览、安装、双路径说明、**本文档索引** |
+| [`README.zh-CN.md`](README.zh-CN.md) | 入口 · 中文 | 与英文版相同 |
+| [`docs/README.md`](docs/README.md) | 总索引 | L0–L5 文档分层；人读 / AI 读 / 机器读划分 |
+| [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | 人读 · 产品 | 功能、路径 A/B 需求、验收、风险 — **程序该做什么** |
+| [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | 人读 · 界面 | 布局、状态机、组件、深色主题；**§11 文案库** — **界面长什么样、写什么字** |
+| [`docs/CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) | 人读 · 代码 | 模块图、路径 A/B 调用链、配置、导出 — **全项目代码怎么串** |
+| [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) | 人读 · AI | 路径 B / **AI 调用路径**、Provider、prompt 加载、校验、**改 prompt 的 SOP** |
+| [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) | 人读 · 契约 | JSON 字段、LUT/XMP 路由、错误行为、schema 版本 |
+| [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) | 人读 · 审计 | **Prompt 变更历史** — 每次为什么改、影响什么 |
+| [`AGENTS.md`](AGENTS.md) | AI · 入口 | 给编码 Agent 的短指引：关键路径、检查清单 |
+| [`.cursor/rules/project-context.mdc`](.cursor/rules/project-context.mdc) | AI · 规则 | 始终生效：产品定位、文档指针、UI v1.6 底片布局 |
+| [`.cursor/rules/ai-module.mdc`](.cursor/rules/ai-module.mdc) | AI · 规则 | 改 `ai/`、`prompts/`、`schemas/` 时必须同步的文件 |
+| [`.cursor/rules/ui-copy.mdc`](.cursor/rules/ui-copy.mdc) | AI · 规则 | 改 `gui/` 时文案须遵循 UI §11 |
+| [`schemas/style_analysis.v1.json`](schemas/style_analysis.v1.json) | 机器读 | 路径 B 模型输出的 JSON Schema（`style_analysis.v1`） |
+| [`config/prompts/style_analysis.txt`](config/prompts/style_analysis.txt) | 机器读 + 可审 | 运行时 system prompt（中文），发往 Vision API |
+| [`config/prompts/style_analysis.en.txt`](config/prompts/style_analysis.en.txt) | 机器读 + 可审 | 运行时 system prompt（英文） |
+| [`gui/copy.py`](gui/copy.py) | 运行时 | 界面字符串；须与 [`UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) §11 一致 |
+
+### 想改什么 → `@` 哪份文档
+
+| 目标 | 建议 `@` |
+|------|----------|
+| 产品行为、功能、验收标准 | `docs/PRODUCT_SPEC_v2.md` |
+| 布局、按钮、状态、用户可见文案 | `docs/UI_UX_DESIGN.md`（并同步 `gui/copy.py`） |
+| 主流程、模块、路径 A、导出 | `docs/CODE_ARCHITECTURE.md` |
+| **路径 B / AI 接口 / prompt / JSON 校验** | `docs/AI_ARCHITECTURE.md` |
+| 增删 AI 返回字段 | `docs/AI_RESPONSE_SCHEMA.md` + `schemas/` + `ai/parameter_registry.py` |
+| 改 prompt 措辞或语气 | `config/prompts/` + **`docs/PROMPT_CHANGELOG.md`** |
+| 让 Cursor 遵守仓库约定 | `AGENTS.md` |
+
+### 校验脚本
+
+| 脚本 | 何时运行 |
+|------|----------|
+| [`scripts/verify_ui.py`](scripts/verify_ui.py) | 改 GUI / 布局后 |
+| [`scripts/verify_ai_schema.py`](scripts/verify_ai_schema.py) | 改 AI schema、registry 或 validator 后 |
+
+**UI 版本：** 见窗口标题，如 `Lightroom 预设学习器 (UI 1.6.0)`。
 
 ---
 

@@ -14,7 +14,7 @@ A desktop app for photography enthusiasts who want to **learn how a Lightroom lo
 - [Goals](#goals)
 - [How It Works](#how-it-works)
 - [Quick Start](#quick-start)
-- [Documentation](#documentation)
+- [Documentation Guide](#documentation-guide)
 - [Project Structure](#project-structure)
 - [Version History: v1 → v2](#version-history-v1--v2)
 - [Current Limitations](#current-limitations)
@@ -73,6 +73,36 @@ flowchart TD
 | **Export** | XMP (LUT optional in dialog) | Reference XMP / optional `.cube` LUT |
 | **Plate preview** | Hidden (not needed) | Available after AI analysis |
 
+> **Path B note (AI call path):** Path B is the **AI invocation pipeline** — not a separate app. After precise recognition fails, the user must click **Start AI Analysis**; the app then runs a background worker that loads the system prompt, calls your OpenAI-compatible Vision API, validates JSON against `style_analysis.v1`, and optionally bakes an in-memory LUT for plate preview. See [Path B — AI call chain](#path-b--ai-call-chain-developer-note) and [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md).
+
+### Path B — AI call chain (developer note)
+
+Path B = **未能精确识别** in user-facing copy. In code it is `AnalysisMode.AI_LEARNING`.
+
+```
+gui/main_window.run_ai_analysis()
+  └─ gui/workers.AiAnalysisWorker
+       ├─ config/ai_config.load_ai_config()
+       ├─ ai/factory.create_analyzer()
+       │    └─ ai/openai_compatible_provider.analyze()
+       │         ├─ read config/prompts/style_analysis.txt (or .en.txt)
+       │         ├─ HTTP Vision API (image + system prompt)
+       │         ├─ ai/response_parser.parse_json_content()
+       │         └─ ai/validator.normalize_style_analysis()
+       ├─ ai/service.style_result_to_report()
+       └─ ai/service.build_lut_for_report() → lut/lut_generator (optional cube)
+```
+
+| Stage | Primary files | Document |
+|-------|---------------|----------|
+| Trigger & thread | `gui/main_window.py`, `gui/workers.py` | [`CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) |
+| API & prompt | `ai/openai_compatible_provider.py`, `config/prompts/` | [`AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) |
+| JSON contract | `ai/validator.py`, `ai/parameter_registry.py`, `schemas/` | [`AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) |
+| Prompt change log | `config/prompts/*.txt` | [`PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) |
+| LUT preview | `lut/lut_generator.py`, `lut/lut_applier.py` | [`AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) §6 |
+
+**To change Path B behavior in Cursor:** `@docs/AI_ARCHITECTURE.md` (flow + SOP) · `@docs/PROMPT_CHANGELOG.md` (if editing prompts) · `@docs/AI_RESPONSE_SCHEMA.md` (if changing JSON fields).
+
 ---
 
 ## Quick Start
@@ -121,20 +151,54 @@ JPG / JPEG / PNG / WebP — drag-and-drop or **Open Image**.
 
 ---
 
-## Documentation
+## Documentation Guide
 
-| Layer | Document | Audience |
-|-------|----------|----------|
-| **Index** | [`docs/README.md`](docs/README.md) | Doc map: human vs AI vs machine |
-| **Product** | [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | What the app does |
-| **UI / copy** | [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | Layout, §11 copy deck |
-| **Code** | [`docs/CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) | Modules, Path A/B call chains |
-| **AI / prompts** | [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) | Provider, prompt SOP, changelog |
-| **JSON contract** | [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) + [`schemas/`](schemas/) | Path B response shape |
-| **Coding agents** | [`AGENTS.md`](AGENTS.md) + [`.cursor/rules/`](.cursor/rules/) | Short rules for AI tools |
-| **Runtime copy** | [`gui/copy.py`](gui/copy.py) | Must match UI doc §11 |
+This README is the **public intro**. For day-to-day work, open the doc that matches your task — in Cursor you can `@`-mention the file path directly.
 
-**UI version:** check window title — e.g. `Lightroom Preset Learner (UI 1.6.0)`.
+**Full layer map (human vs AI vs machine):** [`docs/README.md`](docs/README.md)
+
+### All documents and responsibilities
+
+| Document | Type | Responsible for |
+|----------|------|-----------------|
+| [`README.md`](README.md) | Entry · EN | Public overview, install, Path A/B summary, **this index** |
+| [`README.zh-CN.md`](README.zh-CN.md) | Entry · ZH | Same as above in Chinese |
+| [`docs/README.md`](docs/README.md) | Index | L0–L5 doc layers; what is human-read vs AI-read vs machine-read |
+| [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | Human · product | Features, Path A/B requirements, acceptance tests, risks — **what the app should do** |
+| [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | Human · UI | Layout, state machine, components, dark theme; **§11 copy deck** — **how the UI looks and reads** |
+| [`docs/CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) | Human · code | Module map, Path A/B call chains, config, export — **how the whole codebase is wired** |
+| [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) | Human · AI | Path B / **AI call path**, Provider, prompt loading, validation, **prompt change SOP** |
+| [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) | Human · contract | JSON field definitions, LUT/XMP routing, errors, schema versioning |
+| [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) | Human · audit | **Prompt change history** — why each prompt edit was made |
+| [`AGENTS.md`](AGENTS.md) | AI · entry | Short agent orientation: key paths, checklists, links to docs |
+| [`.cursor/rules/project-context.mdc`](.cursor/rules/project-context.mdc) | AI · rule | Always-on: product positioning, doc pointers, UI v1.6 plate layout |
+| [`.cursor/rules/ai-module.mdc`](.cursor/rules/ai-module.mdc) | AI · rule | When editing `ai/`, `prompts/`, `schemas/` — mandatory sync files |
+| [`.cursor/rules/ui-copy.mdc`](.cursor/rules/ui-copy.mdc) | AI · rule | When editing `gui/` — copy must follow UI §11 |
+| [`schemas/style_analysis.v1.json`](schemas/style_analysis.v1.json) | Machine | JSON Schema for Path B model output (`style_analysis.v1`) |
+| [`config/prompts/style_analysis.txt`](config/prompts/style_analysis.txt) | Machine + audit | Runtime system prompt (zh-CN) sent to the Vision API |
+| [`config/prompts/style_analysis.en.txt`](config/prompts/style_analysis.en.txt) | Machine + audit | Runtime system prompt (English) |
+| [`gui/copy.py`](gui/copy.py) | Runtime | On-screen strings; must match [`UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) §11 |
+
+### What to `@` when you want to change…
+
+| Goal | `@` these documents |
+|------|---------------------|
+| Product behavior, features, acceptance | `docs/PRODUCT_SPEC_v2.md` |
+| Layout, buttons, states, user-visible text | `docs/UI_UX_DESIGN.md` (+ sync `gui/copy.py`) |
+| Main flow, modules, Path A, export pipeline | `docs/CODE_ARCHITECTURE.md` |
+| **Path B / AI API / prompt / JSON validation** | `docs/AI_ARCHITECTURE.md` |
+| Add or change AI response fields | `docs/AI_RESPONSE_SCHEMA.md` + `schemas/` + `ai/parameter_registry.py` |
+| Edit prompt wording or tone | `config/prompts/` + **`docs/PROMPT_CHANGELOG.md`** |
+| Let Cursor follow repo conventions | `AGENTS.md` |
+
+### Verification scripts
+
+| Script | When to run |
+|--------|-------------|
+| [`scripts/verify_ui.py`](scripts/verify_ui.py) | After GUI / layout changes |
+| [`scripts/verify_ai_schema.py`](scripts/verify_ai_schema.py) | After AI schema, registry, or validator changes |
+
+**UI version:** window title — e.g. `Lightroom Preset Learner (UI 1.6.0)`.
 
 ---
 
