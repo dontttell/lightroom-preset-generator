@@ -30,6 +30,8 @@ A desktop app for photography enthusiasts who want to **learn how a Lightroom lo
 - [Background](#background)
 - [Goals](#goals)
 - [How It Works](#how-it-works)
+- [Screenshots & Effect Showcase](#screenshots--effect-showcase)
+- [AI-Assisted Analysis (Prompt)](#ai-assisted-analysis-prompt)
 - [Quick Start](#quick-start)
 - [Documentation Guide](#documentation-guide)
 - [Project Structure](#project-structure)
@@ -119,6 +121,43 @@ gui/main_window.run_ai_analysis()
 | LUT preview | `lut/lut_generator.py`, `lut/lut_applier.py` | [`AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) §6 |
 
 **To change Path B behavior in Cursor:** `@docs/AI_ARCHITECTURE.md` (flow + SOP) · `@docs/PROMPT_CHANGELOG.md` (if editing prompts) · `@docs/AI_RESPONSE_SCHEMA.md` (if changing JSON fields).
+
+---
+
+## Screenshots & Effect Showcase
+
+Want to see the UI before installing? Open the **[User Guide → `interface/GUIDEBOOK.md`](interface/GUIDEBOOK.md)** — it walks through the main window, export dialog, AI settings, and includes a real **before / after** effect comparison with screenshots.
+
+[![Effect showcase: reference style → RAW plate → XMP applied](interface/effect-showcase.png)](interface/GUIDEBOOK.md#11-效果展示)
+
+The guide covers everyday workflows: opening a reference image, reading AI learning output, exporting a preset, and previewing LUT on your own plate. The effect section shows a **film-style meadow reference** analyzed by AI, exported as XMP, then applied in Lightroom to a beach RAW — achieving a similar color mood and tone to the reference.
+
+---
+
+## AI-Assisted Analysis (Prompt)
+
+Path B sends the reference image to your configured **OpenAI-compatible Vision API** together with a fixed system prompt ([`config/prompts/style_analysis.txt`](config/prompts/style_analysis.txt) / [`.en.txt`](config/prompts/style_analysis.en.txt)). The model must return a single JSON object validated as **`style_analysis.v1.1`**.
+
+### What the prompt encodes
+
+The prompt acts as a **color-grading tutor**, not a one-click filter recipe. Its core ideas:
+
+| Layer | Content |
+|-------|---------|
+| **Scene taxonomy** | Classify each image first as **portrait (P)**, **landscape (L)**, or **mixed (M)**, then pick a subtype (e.g. golden hour, studio, blue hour, night neon, astro, snow, environmental portrait) |
+| **Category-specific workflow** | Different observation checklists and reference value bands for portraits vs landscapes — skin and face drive WB/exposure on portraits; sky/terrain drive grading on landscapes |
+| **Structured narrative** | `overall_impression` (with `【category/subtype/light】` tag), `editing_steps` (step 1 always **scene recognition**), `priority_adjustments` (3–5 slider names in suggested order) |
+| **§7a — 11 core sliders** | Exposure, Contrast, Highlights, Shadows, Whites, Blacks, Temperature, Tint, Saturation, Vibrance, Clarity — **all required**, with plausible non-zero values |
+| **§7b — color extension (sparse)** | Optional split toning, color grading wheels, targeted HSL (skin/sky/grass/water), vignette, grain — only when the look clearly needs them, for richer **XMP** export |
+
+### What Path B can deliver today
+
+- **Readable learning copy** — why the reference looks the way it does, and in what order to adjust sliders in Lightroom  
+- **Reference parameters with confidence** — grouped in the learning panel; exportable as **XMP preset** for import into Lightroom Classic  
+- **Global LUT preview** — local before/after on your own plate from the six global keys used in LUT bake (exposure, contrast, WB, saturation, clarity)  
+- **Broad style coverage** — natural light, film-like low saturation, golden hour, night city / neon, astro, snow, mixed environmental portraits, and similar looks where global grading is the main story  
+
+Prompt change history: [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) · JSON contract: [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) · implementation: [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md)
 
 ---
 
