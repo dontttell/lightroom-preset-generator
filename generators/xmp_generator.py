@@ -52,7 +52,7 @@ class XMPGenerator:
         self.preset_group = preset_group or SETTINGS.preset_group
 
     def generate(self, params: List[ParameterResult]) -> str:
-        available = {p.key: p.value for p in params if p.is_available}
+        available = {p.key: p.value for p in params if p.is_available and p.include_in_xmp}
 
         root = ET.Element(
             "x:xmpmeta",

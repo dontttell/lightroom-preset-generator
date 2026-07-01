@@ -7,15 +7,28 @@ AI 配置读写
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCAL_CONFIG = ROOT / "config" / "ai_config.local.yaml"
 EXAMPLE_CONFIG = ROOT / "config" / "ai_config.example.yaml"
+DEFAULT_PROMPT_ZH = "config/prompts/style_analysis.txt"
+DEFAULT_PROMPT_EN = "config/prompts/style_analysis.en.txt"
+
+
+@dataclass
+class AnalysisSettings:
+    """AI 分析行为（prompt、校验阈值、重试）。"""
+
+    language: str = "zh-CN"
+    prompt_file: str = ""
+    lut_min_confidence: float = 0.35
+    xmp_min_confidence: float = 0.25
+    use_json_mode: bool = True
+    max_retries: int = 2
 
 
 @dataclass
@@ -25,7 +38,13 @@ class AiConfig:
     base_url: str = ""
     model: str = ""
     language: str = "zh-CN"
-    prompt_file: str = "config/prompts/style_analysis.txt"
+    prompt_file: str = ""
+
+    # 高级项（可由 yaml 覆盖；UI 暂不暴露）
+    lut_min_confidence: float = 0.35
+    xmp_min_confidence: float = 0.25
+    use_json_mode: bool = True
+    max_retries: int = 2
 
     def is_ready(self) -> bool:
         """API 是否已足够发起分析（UI 不设「服务商」字段，仅需 Key + 模型）。"""
@@ -51,6 +70,34 @@ class AiConfig:
             return "https://api.openai.com/v1"
         return url
 
+    def analysis_settings(self) -> AnalysisSettings:
+        return AnalysisSettings(
+            language=self.language,
+            prompt_file=self.resolved_prompt_path(),
+            lut_min_confidence=self.lut_min_confidence,
+            xmp_min_confidence=self.xmp_min_confidence,
+            use_json_mode=self.use_json_mode,
+            max_retries=self.max_retries,
+        )
+
+    def resolved_prompt_path(self) -> str:
+        """返回实际 prompt 文件路径（相对项目根）。"""
+        if self.prompt_file.strip():
+            return self.prompt_file.strip()
+        lang = self.language.lower()
+        if lang.startswith("en"):
+            return DEFAULT_PROMPT_EN
+        return DEFAULT_PROMPT_ZH
+
+    def user_message_text(self) -> str:
+        lang = self.language.lower()
+        if lang.startswith("en"):
+            return (
+                "Analyze the color grading style of this image. "
+                "Output JSON only, conforming to schema style_analysis.v1."
+            )
+        return "请分析这张图片的调色风格，仅输出 JSON（符合 style_analysis.v1 规范）。"
+
     def status_message(self) -> str:
         if self.is_ready():
             url_hint = self.base_url.strip() or "默认 OpenAI 端点"
@@ -71,7 +118,11 @@ def load_ai_config() -> AiConfig:
         base_url=str(data.get("base_url") or ""),
         model=str(data.get("model") or ""),
         language=str(analysis.get("language") or "zh-CN"),
-        prompt_file=str(analysis.get("prompt_file") or "config/prompts/style_analysis.txt"),
+        prompt_file=str(analysis.get("prompt_file") or ""),
+        lut_min_confidence=float(analysis.get("lut_min_confidence", 0.35)),
+        xmp_min_confidence=float(analysis.get("xmp_min_confidence", 0.25)),
+        use_json_mode=bool(analysis.get("use_json_mode", True)),
+        max_retries=int(analysis.get("max_retries", 2)),
     )
 
 
@@ -83,7 +134,14 @@ def save_ai_config(cfg: AiConfig) -> None:
         "api_key": cfg.api_key,
         "base_url": cfg.base_url,
         "model": cfg.model,
-        "analysis": {"language": cfg.language, "prompt_file": cfg.prompt_file},
+        "analysis": {
+            "language": cfg.language,
+            "prompt_file": cfg.prompt_file,
+            "lut_min_confidence": cfg.lut_min_confidence,
+            "xmp_min_confidence": cfg.xmp_min_confidence,
+            "use_json_mode": cfg.use_json_mode,
+            "max_retries": cfg.max_retries,
+        },
     }
     with open(LOCAL_CONFIG, "w", encoding="utf-8") as f:
         yaml.dump(payload, f, allow_unicode=True, default_flow_style=False)

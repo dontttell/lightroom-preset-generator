@@ -123,12 +123,16 @@ JPG / JPEG / PNG / WebP — drag-and-drop or **Open Image**.
 
 ## Documentation
 
-| Document | Audience | Contents |
-|----------|----------|----------|
-| **This README** | Everyone | Overview, install, limitations, roadmap |
-| [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | Product / developers | Features, modules, acceptance tests, risks |
-| [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | UI contributors | Layout, state machine, dark theme, **§11 copy deck** |
-| [`gui/copy.py`](gui/copy.py) | Implementers | Runtime strings synced with UI doc §11 |
+| Layer | Document | Audience |
+|-------|----------|----------|
+| **Index** | [`docs/README.md`](docs/README.md) | Doc map: human vs AI vs machine |
+| **Product** | [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | What the app does |
+| **UI / copy** | [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | Layout, §11 copy deck |
+| **Code** | [`docs/CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) | Modules, Path A/B call chains |
+| **AI / prompts** | [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) | Provider, prompt SOP, changelog |
+| **JSON contract** | [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) + [`schemas/`](schemas/) | Path B response shape |
+| **Coding agents** | [`AGENTS.md`](AGENTS.md) + [`.cursor/rules/`](.cursor/rules/) | Short rules for AI tools |
+| **Runtime copy** | [`gui/copy.py`](gui/copy.py) | Must match UI doc §11 |
 
 **UI version:** check window title — e.g. `Lightroom Preset Learner (UI 1.6.0)`.
 

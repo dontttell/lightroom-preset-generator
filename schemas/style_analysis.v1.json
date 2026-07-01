@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lightroom-preset-generator/schemas/style_analysis.v1.json",
+  "title": "StyleAnalysisResult",
+  "description": "AI color grading analysis response for Path B (style_analysis.v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["overall_impression", "editing_steps", "priority_adjustments", "parameters"],
+  "properties": {
+    "overall_impression": {
+      "type": "string",
+      "description": "Natural-language summary; language follows analysis.language in config"
+    },
+    "editing_steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step", "title", "description"],
+        "properties": {
+          "step": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "priority_adjustments": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Exposure2012",
+          "Contrast2012",
+          "Highlights2012",
+          "Shadows2012",
+          "Whites2012",
+          "Blacks2012",
+          "Temperature",
+          "Tint",
+          "Saturation",
+          "Vibrance",
+          "Clarity2012"
+        ]
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value", "confidence"],
+        "properties": {
+          "value": { "type": ["number", "integer"] },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        },
+        "additionalProperties": false
+      },
+      "propertyNames": {
+        "enum": [
+          "Exposure2012",
+          "Contrast2012",
+          "Highlights2012",
+          "Shadows2012",
+          "Whites2012",
+          "Blacks2012",
+          "Temperature",
+          "Tint",
+          "Saturation",
+          "Vibrance",
+          "Clarity2012"
+        ]
+      }
+    },
+    "style_summary_en": {
+      "type": "string",
+      "description": "Optional English summary"
+    }
+  }
+}

@@ -2,35 +2,22 @@
 
 from __future__ import annotations
 
-import time
 from typing import List
 
 from ai.schema import StyleAnalysisResult
-from core.inference_result import AiLearningReport, ParameterResult, ParameterStatus
-from core.metadata_parser import DISPLAY_NAMES, group_parameters
+from ai.validator import build_parameter_results
+from config.ai_config import AiConfig, load_ai_config
+from core.inference_result import AiLearningReport
 from lut.lut_generator import build_lut_from_params
 
 
-def style_result_to_report(result: StyleAnalysisResult, elapsed_ms: float) -> AiLearningReport:
-    params: List[ParameterResult] = []
-    flat_params = {}
-    for key, item in result.parameters.items():
-        if not isinstance(item, dict):
-            continue
-        value = item.get("value")
-        conf = float(item.get("confidence", 0.5))
-        params.append(
-            ParameterResult(
-                key=key,
-                display_name=DISPLAY_NAMES.get(key, key),
-                value=value,
-                status=ParameterStatus.INFERRED,
-                confidence=conf,
-                message="AI 参考 · 推测",
-            )
-        )
-        flat_params[key] = value
-
+def style_result_to_report(
+    result: StyleAnalysisResult,
+    elapsed_ms: float,
+    cfg: AiConfig | None = None,
+) -> AiLearningReport:
+    cfg = cfg or load_ai_config()
+    params: List = build_parameter_results(result.parameters, cfg)
     return AiLearningReport(
         overall_impression=result.overall_impression,
         editing_steps=result.editing_steps,
@@ -42,7 +29,11 @@ def style_result_to_report(result: StyleAnalysisResult, elapsed_ms: float) -> Ai
 
 
 def build_lut_for_report(report: AiLearningReport):
-    flat = {p.key: p.value for p in report.parameters if p.is_available}
+    flat = {
+        p.key: p.value
+        for p in report.parameters
+        if p.is_available and p.include_in_lut
+    }
     if not flat:
         return None
     return build_lut_from_params(flat)

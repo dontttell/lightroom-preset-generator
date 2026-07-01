@@ -8,4 +8,9 @@ model: ""
 
 analysis:
   language: zh-CN
-  prompt_file: config/prompts/style_analysis.txt
+  # 留空则按 language 自动选择 prompts/style_analysis.txt 或 .en.txt
+  prompt_file: ""
+  lut_min_confidence: 0.35
+  xmp_min_confidence: 0.25
+  use_json_mode: true
+  max_retries: 2

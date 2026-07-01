@@ -1,0 +1,35 @@
+---
+description: 界面与文案 — 修改 gui/ 或 UI 文档时的规则
+globs:
+  - gui/**
+  - docs/UI_UX_DESIGN.md
+---
+
+# UI / 文案修改规则
+
+## 文案唯一来源
+
+- **规格：** `docs/UI_UX_DESIGN.md` **§11 文案库**  
+- **实现：** `gui/copy.py` — 先改文档 §11，再同步 key  
+
+不要在 `main_window.py` / `widgets.py` 硬编码用户可见中文（About、StatusBar 等应走 `C.t()`）。
+
+## 用户向用语（§11.2）
+
+- 路径 A：**精确识别** → **精确提取**  
+- 路径 B：**未能精确识别** → **AI 辅助学习**  
+- **禁止**在用户可见字符串中使用 `metadata`、`元数据`
+
+## 布局要点（v1.6）
+
+- 底片试看：**仅**左栏 `ImageZone._plate_section`  
+- **不得**恢复右栏 `PlateControlCard`  
+- 底片区启动即显示；LUT 未就绪时按钮 **disabled**
+
+## 完成后
+
+```bash
+python scripts/verify_ui.py
+```
+
+布局变更请核对 UI 文档 §3.4 可见性矩阵。

@@ -4,7 +4,9 @@
 > 状态：待开发（规格定稿，部分 UI 已实现 v2）  
 > 目标用户：想学习调色的摄影爱好者  
 > **UI/UX 专文档：** [UI_UX_DESIGN.md](./UI_UX_DESIGN.md)（布局、组件、色彩、状态机 — **改界面请先读此文档**）  
-> **界面文案主库：** 同上 **[§11 文案库](./UI_UX_DESIGN.md#11-文案规范与文案库copy-deck)** — 产品规格不重复维护字句
+> **界面文案主库：** 同上 **[§11 文案库](./UI_UX_DESIGN.md#11-文案规范与文案库copy-deck)** — 产品规格不重复维护字句  
+> **代码 / AI 实现：** [docs/README.md](./README.md) → [CODE_ARCHITECTURE.md](./CODE_ARCHITECTURE.md)、[AI_ARCHITECTURE.md](./AI_ARCHITECTURE.md)  
+> **编码 Agent：** [AGENTS.md](../AGENTS.md)
 
 ---
 

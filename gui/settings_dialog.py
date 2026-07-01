@@ -71,6 +71,10 @@ class SettingsDialog(QDialog):
             model=self.model_edit.text().strip(),
             language=self._cfg.language,
             prompt_file=self._cfg.prompt_file,
+            lut_min_confidence=self._cfg.lut_min_confidence,
+            xmp_min_confidence=self._cfg.xmp_min_confidence,
+            use_json_mode=self._cfg.use_json_mode,
+            max_retries=self._cfg.max_retries,
         )
 
     def _save(self) -> None:

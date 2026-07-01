@@ -1,0 +1,51 @@
+---
+description: AI 模块与 Prompt — 修改 ai/、prompts、schema 时的强制规则
+globs:
+  - ai/**
+  - config/prompts/**
+  - config/ai_config.py
+  - schemas/**
+  - docs/AI_*.md
+  - docs/PROMPT_*.md
+  - scripts/verify_ai_schema.py
+---
+
+# AI / Prompt 修改规则
+
+## 必读（按顺序）
+
+1. `docs/AI_ARCHITECTURE.md` — 调用链与 SOP  
+2. `docs/AI_RESPONSE_SCHEMA.md` — 契约  
+3. `docs/PROMPT_CHANGELOG.md` — 本次是否要记一笔  
+
+## 必须同步的文件组
+
+改 prompt 或响应字段时，检查这一组是否一致：
+
+| 角色 | 文件 |
+|------|------|
+| Prompt 正文 | `config/prompts/style_analysis.txt`（及 `.en.txt`） |
+| 人读 changelog | `docs/PROMPT_CHANGELOG.md` |
+| 人读 schema 说明 | `docs/AI_RESPONSE_SCHEMA.md` |
+| 机器 schema | `schemas/style_analysis.v1.json` |
+| 代码白名单 | `ai/parameter_registry.py` |
+| 校验逻辑 | `ai/validator.py` |
+
+## 禁止
+
+- 只改 prompt 不更新 `PROMPT_CHANGELOG.md`  
+- 在 prompt 中新增 JSON 字段但不更新 registry / schema  
+- 提交 `config/ai_config.local.yaml` 或任何 API Key  
+- 让 UI 层直接解析原始 model 文本（必须走 `response_parser` → `validator`）
+
+## 版本
+
+当前 schema：**style_analysis.v1**。破坏性变更 → 新 json 文件 + 文档 + changelog Migration 段。
+
+## 完成后
+
+```bash
+python scripts/verify_ai_schema.py
+```
+
+Commit 建议：`prompt(style_analysis.v1): …` 或 `feat(ai): …`

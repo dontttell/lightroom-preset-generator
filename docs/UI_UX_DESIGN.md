@@ -7,6 +7,8 @@
 
 **用途：** 后续修改 `gui/` 代码时，以本文档为界面与交互的单一参考源。
 
+**文档分层：** 全项目索引见 [`docs/README.md`](./README.md)（人读 / AI 读 / 机器读）；代码与 AI 实现见 [`CODE_ARCHITECTURE.md`](./CODE_ARCHITECTURE.md)、[`AI_ARCHITECTURE.md`](./AI_ARCHITECTURE.md)。
+
 **改界面布局 / 组件：** 读 §2–§7。  
 **改用户可见文案（按钮、提示、状态、对话框）：** 统一在 **§11 文案库** 修改；产品规格文档不重复维护字句。
 

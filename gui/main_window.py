@@ -482,7 +482,7 @@ class MainWindow(QMainWindow):
                     params = {
                         p.key: p.value
                         for p in self.session.parameters
-                        if p.is_available
+                        if p.is_available and p.include_in_lut
                     }
                     lut = build_lut_from_params(params)
                 save_cube(lut, dlg.lut_path, title=preset_name)

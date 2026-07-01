@@ -76,6 +76,10 @@ class ParameterResult:
     status: ParameterStatus = ParameterStatus.MISSING
     confidence: float = 0.0
     message: str = ""
+    include_in_lut: bool = True
+    """是否参与 LUT 烘焙；路径 A 默认 True。"""
+    include_in_xmp: bool = True
+    """是否写入 XMP 导出；路径 A 默认 True。"""
     raw_stats: Dict[str, Any] = field(default_factory=dict)
 
     @property

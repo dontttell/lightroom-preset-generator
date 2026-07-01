@@ -119,12 +119,16 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 
 ## 文档索引
 
-| 文档 | 适合谁 | 内容 |
-|------|--------|------|
-| **本 README** | 所有人 | 概览、安装、不足、路线图 |
-| [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | 产品 / 开发 | 功能清单、模块划分、验收用例、风险 |
-| [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | 改界面的人 | 布局、状态机、深色主题、**§11 文案库** |
-| [`gui/copy.py`](gui/copy.py) | 实现者 | 运行时文案，与 UI 文档 §11 对齐 |
+| 层级 | 文档 | 适合谁 |
+|------|------|--------|
+| **总索引** | [`docs/README.md`](docs/README.md) | 人读 / AI 读 / 机器读分层说明 |
+| **产品** | [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | 做什么、验收 |
+| **界面 / 文案** | [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | 布局、§11 文案库 |
+| **代码架构** | [`docs/CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) | 模块、双路径调用链 |
+| **AI / Prompt** | [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) | 改 prompt、Provider、SOP |
+| **JSON 契约** | [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) + [`schemas/`](schemas/) | 路径 B 响应格式 |
+| **编码 Agent** | [`AGENTS.md`](AGENTS.md) + [`.cursor/rules/`](.cursor/rules/) | Cursor 等工具规则 |
+| **运行时文案** | [`gui/copy.py`](gui/copy.py) | 与 UI 文档 §11 对齐 |
 
 窗口标题可查看 UI 版本，例如：`Lightroom 预设学习器 (UI 1.6.0)`。
 

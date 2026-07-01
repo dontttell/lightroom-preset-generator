@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from config.ai_config import AiConfig, load_ai_config
 from ai.base import AiNotConfiguredError, BaseAiProvider
-from ai.openai_provider import OpenAiCompatibleProvider
+from ai.openai_compatible_provider import OpenAiCompatibleProvider
 
 
 def create_analyzer(cfg: AiConfig | None = None) -> BaseAiProvider:
