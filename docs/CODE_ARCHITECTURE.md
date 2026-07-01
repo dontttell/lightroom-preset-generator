@@ -20,7 +20,7 @@ main.py
 |------|------|
 | `main.py` | `sys.path`、启动日志、调用 `run_app()` |
 | `gui/main_window.py` | 会话状态、加载图片、触发 Worker、导出、设置 |
-| `gui/widgets.py` | `ImageZone`、`StatusCard`、`LearningPanel`、Banner 等 |
+| `gui/widgets.py` | `ImageZone`（参考图/试看纵向分割 + 试看区滚动）、`StatusCard`、`LearningPanel`、Banner 等 |
 | `gui/workers.py` | `MetadataWorker`、`AiAnalysisWorker`（QThread） |
 | `gui/copy.py` | 界面文案（对齐 UI 文档 §11） |
 
@@ -90,7 +90,7 @@ AiAnalysisWorker
 | `lut/` | 3D LUT 烘焙与应用 | B 预览；A/B 导出可选 |
 | `generators/` | XMP 写入 | A 精确；B 参考 |
 | `gui/` | PyQt6 界面与后台线程 | 全部 |
-| `config/` | `settings.py`（分析器开关）、`ai_config.py` | 全部 |
+| `config/` | `settings.py`（分析器开关）、`ai_config.py`、`provider_presets.py` | 全部 |
 | `preview/` | v1 OpenCV 模拟器 | **遗留**，非 v2 主路径 |
 | `analyzers/` | v1 规则推测（10 模块） | **遗留**，默认不走 |
 
@@ -114,8 +114,8 @@ AiAnalysisWorker
 | 文件 | 入库 | 用途 |
 |------|------|------|
 | `config/settings.py` | 是 | UI 版本、遗留分析器开关 |
-| `config/ai_config.example.yaml` | 是 | 示例模板（空 Key） |
-| `config/ai_config.local.yaml` | **否**（gitignore） | 用户 API Key、模型、prompt 路径 |
+| `config/ai_config.example.yaml` | 是 | 示例模板（空 Key）；含 `provider_preset` |
+| `config/ai_config.local.yaml` | **否**（gitignore） | 用户 API Key、模型、预设、prompt 路径 |
 | 环境变量 `OPENAI_API_KEY` | — | 可选，与 local yaml 二选一 |
 
 就绪判断：`AiConfig.is_ready()` → Key + model 非空。
@@ -128,7 +128,7 @@ AiAnalysisWorker
 |------|------|------|
 | XMP 导出 | `ExportDialog` → `xmp_generator` | 路径 A 精确；路径 B 带「AI 参考」语义 |
 | LUT 导出 | 勾选后 `lut_generator` 写 `.cube` | 本地近似，非 Adobe 引擎 |
-| 底片 LUT 试看 | `ImageZone` + `lut/lut_applier.py` | 仅路径 B；需先有 `session.lut_cube` |
+| 底片 LUT 试看 | `ImageZone` + `lut/lut_applier.py` | 仅路径 B；纵向分割 + 试看区滚动（UI §3.4.5）；需先有 `session.lut_cube` |
 
 ---
 

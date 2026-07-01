@@ -8,8 +8,25 @@
 
 ---
 
+## 当前状态（2026 年 7 月）
+
+| 模块 | 状态 |
+|------|------|
+| **路径 A — 精确识别** | 已交付 — 内嵌 XMP / sidecar → 真实 CRS 参数 → 导出 XMP |
+| **路径 B — AI 辅助学习** | 已交付 — OpenAI 兼容 Vision API、用户确认后分析、参考 XMP / 可选 LUT |
+| **AI 契约** | **`style_analysis.v1.1`** — §7a 核心 11 项 + §7b 稀疏可选色彩扩展（24 项，丰富 XMP） |
+| **服务商配置** | 设置页预设：**OpenAI**、**火山方舟（豆包）**、**自定义** — 自动填充 Base URL；协议仍为 `/chat/completions` |
+| **底片 LUT 试看** | UI **v1.6** — 仅左栏 |
+| **界面** | 深色 QSS（L1）、StatusCard、学习面板、设置/导出对话框 |
+| **校验脚本** | `scripts/verify_ui.py`、`scripts/verify_ai_schema.py` |
+
+**尚未完成：** 批量工作流、ExifTool 降级、自动化测试 / CI、英文界面、LICENSE 文件。
+
+---
+
 ## 目录
 
+- [当前状态](#当前状态2026-年-7-月)
 - [项目背景](#项目背景)
 - [目标与原则](#目标与原则)
 - [程序如何工作](#程序如何工作)
@@ -69,9 +86,9 @@ flowchart TD
 | **结果** | 真实 CRS 参数 | AI 风格解读 + 参考参数 |
 | **API** | 不需要 | OpenAI 兼容 Vision API（用户自备 Key） |
 | **导出** | XMP（对话框内可选 LUT） | 参考 XMP / 可选 `.cube` LUT |
-| **底片试看** | 隐藏 | AI 分析完成后可用（UI v1.6，仅左栏一处） |
+| **底片试看** | 隐藏 | 仅左栏；AI 分析完成后可用 |
 
-> **路径 B 备注（AI 调用路径）：** 路径 B 指 **AI 调用链路**，不是独立程序。精确识别失败后，用户须点击「开始 AI 分析」；后台 Worker 加载 system prompt → 调用 OpenAI 兼容 Vision API → 按 `style_analysis.v1` 校验 JSON → 可选烘焙内存 LUT 供底片试看。详见 [路径 B — AI 调用链](#路径-b--ai-调用链开发者备注) 与 [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md)。
+> **路径 B 备注（AI 调用路径）：** 路径 B 指 **AI 调用链路**，不是独立程序。精确识别失败后，用户须点击「开始 AI 分析」；后台 Worker 加载 system prompt → 调用 OpenAI 兼容 Vision API → 按 **`style_analysis.v1.1`** 校验 JSON → 可选烘焙内存 LUT 供底片试看。详见 [路径 B — AI 调用链](#路径-b--ai-调用链开发者备注) 与 [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md)。
 
 ### 路径 B — AI 调用链（开发者备注）
 
@@ -135,9 +152,17 @@ python main.py
    copy config\ai_config.example.yaml config\ai_config.local.yaml
    ```
 2. 打开软件 → **设置 → AI 服务**
-3. 填写 **API Key**、**模型名称**，可选 **Base URL**（兼容中转/本地网关）
-4. 保存并 **测试连接**
+3. 选择 **服务商预设**（辅助填 URL，协议仍为 OpenAI 兼容 `chat/completions`）：
 
+   | 预设 | Base URL（自动填充） | 模型字段 |
+   |------|---------------------|----------|
+   | OpenAI 官方 | `https://api.openai.com/v1` | 如 `gpt-4o` |
+   | 火山方舟（豆包） | `https://ark.cn-beijing.volces.com/api/v3` | **模型 ID** 或 `ep-…` 接入点（须支持视觉） |
+   | 自定义 | 自行填写 | 按网关文档 |
+
+4. 填写 **API Key** 与 **模型**；保存并 **测试连接**
+
+> **火山方舟：** 须用 `/api/v3`，勿填其他工具文档里的 Anthropic `/api/compatible` 地址。  
 > **`config/ai_config.local.yaml` 已在 `.gitignore` 中**，不会上传到 GitHub。  
 > **路径 A 无需任何 API Key 即可完整使用。**
 
@@ -159,6 +184,7 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 |------|------|----------|
 | [`README.md`](README.md) | 入口 · 英文 | 对外概览、安装、双路径说明、**本文档索引** |
 | [`README.zh-CN.md`](README.zh-CN.md) | 入口 · 中文 | 与英文版相同 |
+| [`interface/GUIDEBOOK.md`](interface/GUIDEBOOK.md) | 指南 · 中文 | **使用指南**（配图，适合 GitHub 在线阅读） |
 | [`docs/README.md`](docs/README.md) | 总索引 | L0–L5 文档分层；人读 / AI 读 / 机器读划分 |
 | [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | 人读 · 产品 | 功能、路径 A/B 需求、验收、风险 — **程序该做什么** |
 | [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | 人读 · 界面 | 布局、状态机、组件、深色主题；**§11 文案库** — **界面长什么样、写什么字** |
@@ -167,10 +193,10 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 | [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) | 人读 · 契约 | JSON 字段、LUT/XMP 路由、错误行为、schema 版本 |
 | [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) | 人读 · 审计 | **Prompt 变更历史** — 每次为什么改、影响什么 |
 | [`AGENTS.md`](AGENTS.md) | AI · 入口 | 给编码 Agent 的短指引：关键路径、检查清单 |
-| [`.cursor/rules/project-context.mdc`](.cursor/rules/project-context.mdc) | AI · 规则 | 始终生效：产品定位、文档指针、UI v1.6 底片布局 |
+| [`.cursor/rules/project-context.mdc`](.cursor/rules/project-context.mdc) | AI · 规则 | 始终生效：产品定位、文档指针、UI v1.6.2 底片布局 |
 | [`.cursor/rules/ai-module.mdc`](.cursor/rules/ai-module.mdc) | AI · 规则 | 改 `ai/`、`prompts/`、`schemas/` 时必须同步的文件 |
 | [`.cursor/rules/ui-copy.mdc`](.cursor/rules/ui-copy.mdc) | AI · 规则 | 改 `gui/` 时文案须遵循 UI §11 |
-| [`schemas/style_analysis.v1.json`](schemas/style_analysis.v1.json) | 机器读 | 路径 B 模型输出的 JSON Schema（`style_analysis.v1`） |
+| [`schemas/style_analysis.v1.1.json`](schemas/style_analysis.v1.1.json) | 机器读 | 路径 B 当前 JSON Schema（`style_analysis.v1.1`；v1 保留作历史） |
 | [`config/prompts/style_analysis.txt`](config/prompts/style_analysis.txt) | 机器读 + 可审 | 运行时 system prompt（中文），发往 Vision API |
 | [`config/prompts/style_analysis.en.txt`](config/prompts/style_analysis.en.txt) | 机器读 + 可审 | 运行时 system prompt（英文） |
 | [`gui/copy.py`](gui/copy.py) | 运行时 | 界面字符串；须与 [`UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) §11 一致 |
@@ -204,7 +230,7 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 lightroom_preset_generator/
 ├── ai/                  # OpenAI 兼容 Vision 调用、schema、服务层
 ├── analyzers/           # v1 规则分析器（遗留，v2 主流程已不依赖）
-├── config/              # 应用设置、AI 配置（example + local）
+├── config/              # 应用设置、AI 配置、服务商预设、prompts
 ├── core/                # 元数据检测/解析、会话模型、流水线
 ├── docs/                # 产品规格 + UI/UX 设计
 ├── generators/          # XMP 预设生成
@@ -260,6 +286,7 @@ lightroom_preset_generator/
 - **单张工作流** — 无批量导入、文件夹监听、与 LR 目录联动。
 - **界面语言** — 当前为中文 UI；英文 locale 尚未实现（文案已 key 化，见 `gui/copy.py`）。
 - **底片试看** — 仅路径 B、且需先完成 AI 分析；路径 A 有意隐藏底片区。
+- **LUT 试看仅含 6 个全局项** — §7b 色彩分级 / HSL / 暗角 / 颗粒仅写入 XMP 与学习面板，不参与本地 LUT 烘焙。
 
 ### 技术层面
 
@@ -272,7 +299,7 @@ lightroom_preset_generator/
 ### 工程化
 
 - **尚无 LICENSE** — 二次分发条款未定义。
-- **规格文档状态** — `PRODUCT_SPEC_v2.md` 部分条目仍标「待开发」，与已实现的 UI v1.6 存在时间差；以仓库代码与本 README 为准。
+- **文档与代码** — 里程碑后会同步规格；若有出入以仓库代码与本 README 为准。
 
 ---
 
@@ -329,6 +356,7 @@ API Key 仅保存在本地设置或 `config/ai_config.local.yaml`。分析客户
 | 一直显示「AI 未配置」 | 路径 B 预期行为；路径 A 不受影响 |
 | `verify_ui.py` 失败 | 检查 `config/settings.py` 中 `ui_version` 与 widgets 文档注释 |
 | 担心 Key 泄露 | 勿提交 `ai_config.local.yaml`；仓库仅含空的 example 文件 |
+| 火山方舟 404 / ModelNotOpen | 选火山预设（`/api/v3`）；控制台开通模型；模型栏填 Model ID 非展示名 |
 
 ---
 

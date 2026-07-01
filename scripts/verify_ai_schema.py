@@ -32,7 +32,7 @@ def main() -> int:
     cfg = AiConfig()
     result, params, warnings = normalize_style_analysis(SAMPLE, cfg)
     checks = [
-        ("schema version in raw", result.raw.get("_schema_version") == "style_analysis.v1"),
+        ("schema version in raw", result.raw.get("_schema_version") == "style_analysis.v1.1"),
         ("unknown key dropped", "UnknownKey" not in result.parameters),
         ("highlights clamped", result.parameters["Highlights2012"]["value"] == 100),
         ("low conf skips lut", not result.parameters["Highlights2012"]["include_in_lut"]),

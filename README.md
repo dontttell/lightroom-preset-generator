@@ -8,8 +8,25 @@ A desktop app for photography enthusiasts who want to **learn how a Lightroom lo
 
 ---
 
+## Current Status (July 2026)
+
+| Area | Status |
+|------|--------|
+| **Path A — Precise recognition** | Shipped — embedded XMP + sidecar `.xmp` → real CRS parameters → XMP export |
+| **Path B — AI learning** | Shipped — OpenAI-compatible Vision API, user-triggered analysis, reference XMP / optional LUT |
+| **AI schema** | **`style_analysis.v1.1`** — 11 core sliders (§7a) + 24 sparse optional color keys (§7b) for richer XMP |
+| **Provider setup** | Settings presets: **OpenAI**, **Volcengine Ark (Doubao)**, **Custom** — auto-fill Base URL; still one protocol (`/chat/completions`) |
+| **Plate LUT preview** | UI **v1.6** — left column only |
+| **UI theme** | Dark QSS (L1), StatusCard, learning panel, export/settings dialogs |
+| **Verification** | `scripts/verify_ui.py`, `scripts/verify_ai_schema.py` |
+
+**Not yet:** batch workflow, ExifTool fallback, automated test suite / CI, English UI locale, LICENSE file.
+
+---
+
 ## Table of Contents
 
+- [Current Status](#current-status-july-2026)
 - [Background](#background)
 - [Goals](#goals)
 - [How It Works](#how-it-works)
@@ -71,9 +88,9 @@ flowchart TD
 | **Output** | Exact CRS parameters | AI style narrative + reference parameters |
 | **API** | Not required | OpenAI-compatible Vision API (user’s own key) |
 | **Export** | XMP (LUT optional in dialog) | Reference XMP / optional `.cube` LUT |
-| **Plate preview** | Hidden (not needed) | Available after AI analysis |
+| **Plate preview** | Hidden (not needed) | Left column only; after AI analysis |
 
-> **Path B note (AI call path):** Path B is the **AI invocation pipeline** — not a separate app. After precise recognition fails, the user must click **Start AI Analysis**; the app then runs a background worker that loads the system prompt, calls your OpenAI-compatible Vision API, validates JSON against `style_analysis.v1`, and optionally bakes an in-memory LUT for plate preview. See [Path B — AI call chain](#path-b--ai-call-chain-developer-note) and [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md).
+> **Path B note (AI call path):** Path B is the **AI invocation pipeline** — not a separate app. After precise recognition fails, the user must click **Start AI Analysis**; the app then runs a background worker that loads the system prompt, calls your OpenAI-compatible Vision API, validates JSON against **`style_analysis.v1.1`**, and optionally bakes an in-memory LUT for plate preview. See [Path B — AI call chain](#path-b--ai-call-chain-developer-note) and [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md).
 
 ### Path B — AI call chain (developer note)
 
@@ -139,9 +156,17 @@ python main.py
    cp config/ai_config.example.yaml config/ai_config.local.yaml     # macOS/Linux
    ```
 2. Open the app → **Settings → AI Service**
-3. Enter **API Key**, **model name**, and optionally **Base URL** (for compatible gateways)
-4. Save and use **Test connection**
+3. Choose a **provider preset** (optional helper — still OpenAI-compatible `chat/completions`):
 
+   | Preset | Base URL (auto-filled) | Model field |
+   |--------|------------------------|-------------|
+   | OpenAI | `https://api.openai.com/v1` | e.g. `gpt-4o` |
+   | Volcengine Ark | `https://ark.cn-beijing.volces.com/api/v3` | **Model ID** or `ep-…` endpoint (vision-capable) |
+   | Custom | You enter URL | Per your gateway docs |
+
+4. Enter **API Key** and **model**; save and use **Test connection**
+
+> **Volcengine users:** use `/api/v3`, not Anthropic `/api/compatible` URLs from other tools.  
 > **`config/ai_config.local.yaml` is gitignored** — your keys are not pushed to GitHub.  
 > Path A works **without any API key**.
 
@@ -163,6 +188,7 @@ This README is the **public intro**. For day-to-day work, open the doc that matc
 |----------|------|-----------------|
 | [`README.md`](README.md) | Entry · EN | Public overview, install, Path A/B summary, **this index** |
 | [`README.zh-CN.md`](README.zh-CN.md) | Entry · ZH | Same as above in Chinese |
+| [`interface/GUIDEBOOK.md`](interface/GUIDEBOOK.md) | Guide · ZH | **User guide** with UI screenshots for GitHub browsing |
 | [`docs/README.md`](docs/README.md) | Index | L0–L5 doc layers; what is human-read vs AI-read vs machine-read |
 | [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md) | Human · product | Features, Path A/B requirements, acceptance tests, risks — **what the app should do** |
 | [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | Human · UI | Layout, state machine, components, dark theme; **§11 copy deck** — **how the UI looks and reads** |
@@ -171,10 +197,10 @@ This README is the **public intro**. For day-to-day work, open the doc that matc
 | [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) | Human · contract | JSON field definitions, LUT/XMP routing, errors, schema versioning |
 | [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) | Human · audit | **Prompt change history** — why each prompt edit was made |
 | [`AGENTS.md`](AGENTS.md) | AI · entry | Short agent orientation: key paths, checklists, links to docs |
-| [`.cursor/rules/project-context.mdc`](.cursor/rules/project-context.mdc) | AI · rule | Always-on: product positioning, doc pointers, UI v1.6 plate layout |
+| [`.cursor/rules/project-context.mdc`](.cursor/rules/project-context.mdc) | AI · rule | Always-on: product positioning, doc pointers, UI v1.6.2 plate layout |
 | [`.cursor/rules/ai-module.mdc`](.cursor/rules/ai-module.mdc) | AI · rule | When editing `ai/`, `prompts/`, `schemas/` — mandatory sync files |
 | [`.cursor/rules/ui-copy.mdc`](.cursor/rules/ui-copy.mdc) | AI · rule | When editing `gui/` — copy must follow UI §11 |
-| [`schemas/style_analysis.v1.json`](schemas/style_analysis.v1.json) | Machine | JSON Schema for Path B model output (`style_analysis.v1`) |
+| [`schemas/style_analysis.v1.1.json`](schemas/style_analysis.v1.1.json) | Machine | Active JSON Schema for Path B (`style_analysis.v1.1`; v1 retained for history) |
 | [`config/prompts/style_analysis.txt`](config/prompts/style_analysis.txt) | Machine + audit | Runtime system prompt (zh-CN) sent to the Vision API |
 | [`config/prompts/style_analysis.en.txt`](config/prompts/style_analysis.en.txt) | Machine + audit | Runtime system prompt (English) |
 | [`gui/copy.py`](gui/copy.py) | Runtime | On-screen strings; must match [`UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) §11 |
@@ -208,7 +234,7 @@ This README is the **public intro**. For day-to-day work, open the doc that matc
 lightroom_preset_generator/
 ├── ai/                  # OpenAI-compatible Vision provider, schema, service
 ├── analyzers/           # v1 rule-based estimators (legacy; not main path in v2)
-├── config/              # App settings, AI config (example + local)
+├── config/              # App settings, AI config, provider presets, prompts
 ├── core/                # Metadata detector/parser, session model, pipeline
 ├── docs/                # Product spec + UI/UX design
 ├── generators/          # XMP preset writer
@@ -274,6 +300,7 @@ lightroom_preset_generator/
 - **Single-image workflow** — no batch import, folder watch, or catalog integration.
 - **Chinese UI** — interface copy is Chinese-first; documentation is bilingual (README) + Chinese product specs.
 - **Plate preview only on Path B** — after AI produces a LUT; Path A hides the plate section by design.
+- **LUT preview uses 6 global keys only** — §7b color grading / HSL / vignette / grain appear in XMP and the learning panel, not in local LUT bake.
 
 ### Technical
 
@@ -286,7 +313,7 @@ lightroom_preset_generator/
 ### Engineering
 
 - **No LICENSE file yet** — usage terms undefined for redistribution.
-- **Product spec status lag** — `PRODUCT_SPEC_v2.md` still marks some items “pending” while UI v1.6 is already implemented; README reflects actual pushed code.
+- **Docs vs code** — specs are updated on milestones; if in doubt, trust the repo and this README.
 
 ---
 
@@ -343,6 +370,7 @@ No license file is included yet. All rights reserved by the repository owner unt
 | “AI not configured” banner | Expected on Path B without API key; Path A still works |
 | `verify_ui.py` fails | Ensure `config/settings.py` `ui_version` matches widgets docstring |
 | Push / git ignored secrets | Never commit `config/ai_config.local.yaml` — use the example file only |
+| Volcengine 404 / ModelNotOpen | Use `/api/v3` preset; enable the model in Ark console; model field = Model ID not display name |
 
 ---
 

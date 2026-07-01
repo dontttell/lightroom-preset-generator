@@ -5,9 +5,10 @@ You **must classify the scene first**, then apply that category’s checklist an
 ═══════════════════════════════════════
 §1 Output contract
 ═══════════════════════════════════════
-- Schema: style_analysis.v1 | One JSON object only | No markdown fences
+- Schema: style_analysis.v1.1 | One JSON object only | No markdown fences
 - English CRS field names (§7 whitelist)
-- **parameters must include all 11 whitelist keys — do not omit any**
+- **§7a core 11: parameters must include all 11 keys — do not omit any**
+- **§7b color extension: sparse optional — output only when style clearly warrants; never fill all keys**
 - Each: value + confidence (0~1)
 - Forbidden: all values 0; all identical confidence (e.g. 0.5)
 - **≥4 parameters with meaningful |value|**; for weak tendencies use **small non-zero** (e.g. ±3~±8, Exposure ±0.05~±0.15), never omit keys
@@ -126,26 +127,43 @@ Contrast −15~+5 | Shadows +15~+40 | Sat −15~+5 | Temp 4800–5400 | Exposure
 §4 LUT & local masks
 ═══════════════════════════════════════
 LUT global only: Exposure2012, Contrast2012, Temperature+Tint, Saturation, Clarity2012.  
-No subject masks, gradients, radial, local HSL.
+No subject masks, gradients, radial, local HSL, color grading, vignette, or grain in LUT.
 
 Subject separation → local steps; global proxy conf ≤0.52.  
-Shadows/Highlights/Whites/Blacks/Vibrance: fill for learning/XMP; active use for night/astro/snow.
+Shadows/Highlights/Whites/Blacks/Vibrance: fill for learning/XMP; active use for night/astro/snow.  
+**§7b color extension does not affect LUT preview**; effects show in Lightroom via exported XMP.
 
 ═══════════════════════════════════════
 §5 Confidence
 ═══════════════════════════════════════
-Clear subtype: 0.65–0.85 | Hard to quantify: 0.45–0.64 | Mask proxy: ≤0.52 | Pre-graded JPG: ≤0.50 | Uncertain subtype: −0.10~−0.15 from tier  
-≥4 params confidence ≥0.55; priority_adjustments 3~5 items ≥0.55
+Clear subtype: 0.65–0.85 | Hard to quantify: 0.45–0.64 | Mask proxy: ≤0.52 | §7b color extension: 0.40–0.58 (max ~0.68 if obvious) | Pre-graded JPG: ≤0.50 | Uncertain subtype: −0.10~−0.15 from tier  
+≥4 core params confidence ≥0.55; priority_adjustments 3~5 items ≥0.55 (≥2 from §7a core)
 
 ═══════════════════════════════════════
 §6 Hard ranges
 ═══════════════════════════════════════
-Exposure −5~+5 | Sliders −100~+100 | Temp 2000~50000 | Tint −150~+150
+Exposure −5~+5 | Sliders −100~+100 | Temp 2000~50000 | Tint −150~+150  
+Split-tone / grade Hue 0~360 | Split-tone Sat 0~100 | Vignette midpoint / Grain 0~100
 
 ═══════════════════════════════════════
-§7 Whitelist (all 11 required)
+§7 Whitelist
 ═══════════════════════════════════════
+
+§7a Core (11 — **all required**)  
 Exposure2012, Contrast2012, Highlights2012, Shadows2012, Whites2012, Blacks2012, Temperature, Tint, Saturation, Vibrance, Clarity2012
+
+§7b Color extension (24 — **sparse optional, do not fill all**)  
+**Grading:** SplitToningShadowHue, SplitToningShadowSaturation, SplitToningHighlightHue, SplitToningHighlightSaturation, SplitToningBalance, ColorGradeGlobalHue, ColorGradeGlobalSat, ColorGradeMidtoneHue, ColorGradeMidtoneSat  
+**Targeted HSL:** SaturationAdjustmentOrange, LuminanceAdjustmentOrange, SaturationAdjustmentRed, HueAdjustmentBlue, SaturationAdjustmentBlue, LuminanceAdjustmentBlue, HueAdjustmentAqua, SaturationAdjustmentAqua, LuminanceAdjustmentAqua, HueAdjustmentGreen, SaturationAdjustmentGreen, LuminanceAdjustmentGreen  
+**Effects:** PostCropVignetteAmount, PostCropVignetteMidpoint, GrainAmount
+
+§7b rules (avoid oversaturated / weird color)  
+1. **Default: omit** §7b keys when no clear film/teal-orange/neon/grain/vignette/sky/grass cues  
+2. **Cap:** ≤8 non-zero §7b keys per response; prefer 3–6  
+3. **No stacking:** if SplitToning is strong, do not also max GlobalSat + multi-HSL in same direction  
+4. **Magnitude:** HSL usually |value|≤25; grade Sat ≤35; halve on already-saturated scenes  
+5. **confidence:** §7b typically 0.40–0.58  
+6. **priority_adjustments:** ≥2 of 3–5 items must be from §7a core
 
 ═══════════════════════════════════════
 §8 Examples (3 — do not copy numbers blindly)
@@ -184,7 +202,7 @@ Exposure2012, Contrast2012, Highlights2012, Shadows2012, Whites2012, Blacks2012,
     {"step": 2, "title": "Contrast & highlights", "description": "Pull highlights for neon detail; lift shadows for depth."},
     {"step": 3, "title": "Color", "description": "Tint for magenta neon; moderate global saturation."}
   ],
-  "priority_adjustments": ["Tint", "Highlights2012", "Shadows2012", "Contrast2012"],
+  "priority_adjustments": ["Tint", "Highlights2012", "SplitToningHighlightHue", "Contrast2012"],
   "parameters": {
     "Exposure2012": {"value": 0.12, "confidence": 0.55},
     "Contrast2012": {"value": 22, "confidence": 0.70},
@@ -196,7 +214,13 @@ Exposure2012, Contrast2012, Highlights2012, Shadows2012, Whites2012, Blacks2012,
     "Tint": {"value": 18, "confidence": 0.73},
     "Saturation": {"value": 16, "confidence": 0.62},
     "Vibrance": {"value": 8, "confidence": 0.52},
-    "Clarity2012": {"value": 10, "confidence": 0.56}
+    "Clarity2012": {"value": 10, "confidence": 0.56},
+    "SplitToningShadowHue": {"value": 210, "confidence": 0.52},
+    "SplitToningShadowSaturation": {"value": 18, "confidence": 0.50},
+    "SplitToningHighlightHue": {"value": 42, "confidence": 0.54},
+    "SplitToningHighlightSaturation": {"value": 22, "confidence": 0.51},
+    "ColorGradeMidtoneHue": {"value": 310, "confidence": 0.48},
+    "ColorGradeMidtoneSat": {"value": 14, "confidence": 0.46}
   }
 }
 
@@ -227,9 +251,9 @@ Exposure2012, Contrast2012, Highlights2012, Shadows2012, Whites2012, Blacks2012,
 ═══════════════════════════════════════
 §9 Forbidden
 ═══════════════════════════════════════
-No classification; missing any of 11 keys | Street-lamp night with neon Tint | Blue hour with full neon bands | Astro Temp 6500+ | Portrait ignoring face | Mask proxy conf>0.52 | Pre-graded JPG with huge Sat+ | Uncertain subtype with Temp=5500 near-zero table | All-zero or uniform confidence
+No classification; missing any §7a core key | Filling all §7b keys or >8 non-zero §7b | Grain + full SplitToning + multi-HSL without clear style | Street-lamp night with neon Tint | Blue hour with full neon bands | Astro Temp 6500+ | Portrait ignoring face | Mask proxy conf>0.52 | Pre-graded JPG with huge Sat+ | Uncertain subtype with Temp=5500 near-zero table | All-zero or uniform confidence
 
 ═══════════════════════════════════════
 §10 Output
 ═══════════════════════════════════════
-For the **uploaded image**: §2 classify (incl. JPG/uncertain) → §3 bands → **all 11 fields** → JSON.
+For the **uploaded image**: §2 classify (incl. JPG/uncertain) → §3 bands → **all §7a core 11** → §7b only if warranted (sparse) → JSON.

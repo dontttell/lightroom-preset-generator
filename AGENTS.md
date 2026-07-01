@@ -40,7 +40,8 @@ gui/workers.py     MetadataWorker | AiAnalysisWorker
 core/metadata_*    Path A
 ai/                Path B provider, parse, validate
 config/prompts/    System prompts (versioned)
-schemas/           style_analysis.v1.json
+config/provider_presets.py  Settings URL presets (OpenAI / Volcengine / custom)
+schemas/           style_analysis.v1.1.json (active)
 lut/               LUT bake + plate preview
 generators/        XMP export
 ```
@@ -57,7 +58,7 @@ Legacy (do not wire as default): `analyzers/`, `preview/preset_simulator.py`
 2. Update [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) when changing `config/prompts/`  
 3. Keep `schemas/`, `ai/parameter_registry.py`, and prompt field lists aligned  
 4. Run `python scripts/verify_ai_schema.py` if present  
-5. Commit message: `prompt(style_analysis.v1): …` or `feat(ai): …`
+5. Commit message: `prompt(style_analysis.v1.1): …` or `feat(ai): …`
 
 ### Editing UI copy
 
@@ -68,7 +69,7 @@ Legacy (do not wire as default): `analyzers/`, `preview/preset_simulator.py`
 ### Editing layout / widgets
 
 1. [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) §3–§7  
-2. Plate preview: **left column only** (UI v1.6), no `PlateControlCard`
+2. Plate preview: **left column only** (UI v1.6); vertical splitter + scroll in plate section (§3.4.5); no `PlateControlCard`
 
 ---
 
@@ -86,4 +87,4 @@ Windows: `run.bat`
 
 ## Schema version
 
-Current: **`style_analysis.v1`**. Bump only with new JSON schema file + changelog + registry update.
+Current: **`style_analysis.v1.1`**. Bump only with new JSON schema file + changelog + registry update.

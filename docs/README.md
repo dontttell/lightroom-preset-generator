@@ -56,12 +56,13 @@
 | 资产 | 类型 | 说明 |
 |------|------|------|
 | [`AI_RESPONSE_SCHEMA.md`](./AI_RESPONSE_SCHEMA.md) | 人读契约说明 | 字段表、LUT/XMP 路由、错误行为、版本策略 |
-| [`schemas/style_analysis.v1.json`](../schemas/style_analysis.v1.json) | 机器读 Schema | 与 validator / prompt 版本号一致 |
+| [`schemas/style_analysis.v1.1.json`](../schemas/style_analysis.v1.1.json) | 机器读 Schema | 当前版本；与 validator / prompt 一致 |
+| [`schemas/style_analysis.v1.json`](../schemas/style_analysis.v1.json) | 机器读 Schema | 历史 v1（11 项核心） |
 | [`config/prompts/style_analysis.txt`](../config/prompts/style_analysis.txt) | 运行时 Prompt（zh-CN） | 正文可人工审核；须声明 schema 版本 |
 | [`config/prompts/style_analysis.en.txt`](../config/prompts/style_analysis.en.txt) | 运行时 Prompt（en） | 同上 |
 | [`ai/parameter_registry.py`](../ai/parameter_registry.py) | 代码内白名单 | 与 schema、prompt 参数列表一致 |
 
-**版本号：** 当前 **`style_analysis.v1`**。破坏性变更 → 新 schema 文件 + 新 prompt 版本段 + changelog 条目。
+**版本号：** 当前 **`style_analysis.v1.1`**。破坏性变更 → 新 schema 文件 + 新 prompt 版本段 + changelog 条目。
 
 ---
 
@@ -94,7 +95,7 @@ scripts/verify_ai_schema.py ← schema / registry 一致性（可选）
 
 1. **一处权威：** 同一事实只在一类文档里写全；其它文档用链接引用。  
 2. **先文档后代码（AI / prompt）：** 改 prompt 或 schema 前更新 changelog；改完跑校验脚本。  
-3. **Git 追溯：** prompt 变更使用独立 commit，message 建议 `prompt(style_analysis.v1): …` 或 `feat(ai): …`。  
+3. **Git 追溯：** prompt 变更使用独立 commit，message 建议 `prompt(style_analysis.v1.1): …` 或 `feat(ai): …`。  
 4. **不提交：** `config/ai_config.local.yaml`、测试图片、含真实 Key 的文件。
 
 ---
@@ -103,4 +104,5 @@ scripts/verify_ai_schema.py ← schema / registry 一致性（可选）
 
 | 日期 | 说明 |
 |------|------|
+| 2026-07-02 | schema v1.1、服务商预设、试看区滚动/分割；README 当前状态 |
 | 2026-06-30 | 初版：建立 L0–L5 分层与索引 |

@@ -27,7 +27,7 @@ globs:
 | Prompt 正文 | `config/prompts/style_analysis.txt`（及 `.en.txt`） |
 | 人读 changelog | `docs/PROMPT_CHANGELOG.md` |
 | 人读 schema 说明 | `docs/AI_RESPONSE_SCHEMA.md` |
-| 机器 schema | `schemas/style_analysis.v1.json` |
+| 机器 schema | `schemas/style_analysis.v1.1.json`（当前；v1 为历史） |
 | 代码白名单 | `ai/parameter_registry.py` |
 | 校验逻辑 | `ai/validator.py` |
 
@@ -40,7 +40,7 @@ globs:
 
 ## 版本
 
-当前 schema：**style_analysis.v1**。破坏性变更 → 新 json 文件 + 文档 + changelog Migration 段。
+当前 schema：**style_analysis.v1.1**。破坏性变更 → 新 json 文件 + 文档 + changelog Migration 段。
 
 ## 完成后
 
@@ -48,4 +48,4 @@ globs:
 python scripts/verify_ai_schema.py
 ```
 
-Commit 建议：`prompt(style_analysis.v1): …` 或 `feat(ai): …`
+Commit 建议：`prompt(style_analysis.v1.1): …` 或 `feat(ai): …`

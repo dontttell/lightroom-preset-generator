@@ -105,9 +105,9 @@ class AiConfig:
         if lang.startswith("en"):
             return (
                 "Analyze this image. Classify scene type and subtype first (portrait/landscape/mixed and lighting), "
-                "then output style_analysis.v1 JSON using that category's reference ranges; parameters must be non-zero and plausible."
+                "then output style_analysis.v1.1 JSON using that category's reference ranges; §7a core parameters must be non-zero and plausible; §7b color extension only when style warrants (sparse)."
             )
-        return "请分析这张图片。先识别场景大类与子类（人像/风光/混合及光线环境），再按该类别参考区间输出 style_analysis.v1 JSON；parameters 须非零且合理。"
+        return "请分析这张图片。先识别场景大类与子类（人像/风光/混合及光线环境），再按该类别参考区间输出 style_analysis.v1.1 JSON；§7a 基础项须非零且合理；§7b 色彩扩展仅在有明显风格特征时稀疏输出。"
 
     def status_message(self) -> str:
         if self.is_ready():

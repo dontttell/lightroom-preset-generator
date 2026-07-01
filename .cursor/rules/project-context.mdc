@@ -14,7 +14,7 @@ alwaysApply: true
 ## 文档
 - **索引（人读 / AI 读分层）：** [`docs/README.md`](docs/README.md)
 - 功能：[`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md)
-- UI/UX：[`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md)（**v1.6.1**）
+- UI/UX：[`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md)（**v1.6.2**）
 - 代码架构：[`docs/CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md)
 - AI / Prompt：[`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) + [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md)
 - Agent 入口：[`AGENTS.md`](AGENTS.md)
@@ -22,6 +22,7 @@ alwaysApply: true
 
 ## UI v1.6 底片试看（§3.4）
 - **仅左栏** `ImageZone`：参考图在上 + 底片预览在下；**已删除**右栏 `PlateControlCard`
+- **纵向分割条**（`imageZoneSplit`）可拖；试看区在 **QScrollArea** 内可滚动（§3.4.5）
 - **启动即显示**底片区 + 「上传底片」「应用 LUT 预览」（LUT 未就绪时**禁用**）
 - 路径 A：隐藏底片预览区
 - 路径 B + LUT 就绪：启用上传；有底片后启用应用 LUT

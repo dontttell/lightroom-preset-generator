@@ -1,7 +1,7 @@
 # AI 模块架构（路径 B）
 
 > **读者：** 改 prompt、改 Provider、改 JSON 校验或 LUT 路由的维护者。  
-> **契约：** [`AI_RESPONSE_SCHEMA.md`](./AI_RESPONSE_SCHEMA.md) + [`schemas/style_analysis.v1.json`](../schemas/style_analysis.v1.json)  
+> **契约：** [`AI_RESPONSE_SCHEMA.md`](./AI_RESPONSE_SCHEMA.md) + [`schemas/style_analysis.v1.1.json`](../schemas/style_analysis.v1.1.json)（v1 见 [`style_analysis.v1.json`](../schemas/style_analysis.v1.json)）  
 > **变更审计：** [`PROMPT_CHANGELOG.md`](./PROMPT_CHANGELOG.md)  
 > **全项目上下文：** [`CODE_ARCHITECTURE.md`](./CODE_ARCHITECTURE.md)
 
@@ -59,6 +59,7 @@ gui/main_window.run_ai_analysis()
 | `ai/service.py` | AI 结果 → `AiLearningReport` + 内存 LUT |
 | `ai/capabilities.py` | Provider 能力常量 |
 | `config/ai_config.py` | 加载 yaml、prompt 路径、`lut_min_confidence` 等 |
+| `config/provider_presets.py` | 设置页服务商预设（OpenAI / 火山方舟 / 自定义 URL 提示） |
 | `config/prompts/style_analysis.txt` | 中文 system prompt |
 | `config/prompts/style_analysis.en.txt` | 英文 system prompt |
 
@@ -75,7 +76,7 @@ gui/main_window.run_ai_analysis()
 
 Prompt 正文必须：
 
-1. 声明 schema 版本（如 `style_analysis.v1`）  
+1. 声明 schema 版本（当前 **`style_analysis.v1.1`**）  
 2. 要求 **仅输出 JSON**（无 markdown 围栏）  
 3. 列出允许的 CRS 字段名（与 `parameter_registry` 一致）  
 4. 说明哪些字段参与 **LUT 试看** vs **仅 XMP/学习**
@@ -119,18 +120,18 @@ LUT 最低门槛见 [`AI_RESPONSE_SCHEMA.md`](./AI_RESPONSE_SCHEMA.md) § LUT mi
 
 **人读审核 + AI 编码时均应遵守：**
 
-### 7.1 小改（同一 `style_analysis.v1`）
+### 7.1 小改（同一 `style_analysis.v1.1`，或仅措辞不改字段）
 
 1. 编辑 `config/prompts/style_analysis.txt`（及 `.en.txt` 若需同步）  
 2. 在 [`PROMPT_CHANGELOG.md`](./PROMPT_CHANGELOG.md) 追加条目：**日期、动机、影响字段**  
 3. 确认未引入 schema 未声明的新参数 key  
-4. 运行 `python scripts/verify_ai_schema.py`（若存在）  
+4. 运行 `python scripts/verify_ai_schema.py`  
 5. 用 1～3 张样图手动跑 Path B，记录观察（可写在 changelog 或 PR）  
-6. Git commit 建议：`prompt(style_analysis.v1): <简短说明>`
+6. Git commit 建议：`prompt(style_analysis.v1.1): <简短说明>`
 
-### 7.2 大改（破坏性）
+### 7.2 大改（破坏性 / 新版本号）
 
-1. 复制 `schemas/style_analysis.v1.json` → `v2`，更新 [`AI_RESPONSE_SCHEMA.md`](./AI_RESPONSE_SCHEMA.md)  
+1. 复制 `schemas/style_analysis.v1.1.json` → 下一版本，更新 [`AI_RESPONSE_SCHEMA.md`](./AI_RESPONSE_SCHEMA.md)  
 2. 更新 `ai/parameter_registry.py`、`ai/validator.py`  
 3. 新建 `config/prompts/...` 并引用新版本号  
 4. changelog 写 **Migration** 小节  

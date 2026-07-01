@@ -5,13 +5,14 @@
 ═══════════════════════════════════════
 §1 输出契约
 ═══════════════════════════════════════
-- Schema：style_analysis.v1
+- Schema：style_analysis.v1.1
 - 仅输出一个 JSON 对象，禁止 markdown 围栏与前后说明
 - 键名：Lightroom Camera Raw 英文字段（§7 白名单）
-- **parameters 必须包含白名单内全部 11 个字段，不得省略 key**
+- **§7a 基础 11 项：parameters 必须全部包含，不得省略 key**
+- **§7b 色彩扩展项：稀疏可选 — 仅在与画面风格明显相关时输出；禁止为凑数而全填**
 - 每项含 value + confidence（0~1）
 - 禁止：全部 value=0；全部 confidence 相同（如全 0.5）
-- **至少 4 个参数 |value| 有明确倾向**（非零且非敷衍）；其余无明显倾向的字段用**小幅度非零**（如 ±3~±8，Exposure ±0.05~±0.15），勿省略
+- **至少 4 个基础参数 |value| 有明确倾向**（非零且非敷衍）；其余无明显倾向的基础项用**小幅度非零**（如 ±3~±8，Exposure ±0.05~±0.15），勿省略 key
 
 **overall_impression 格式（强制）**  
 首行必须是场景标签，格式：  
@@ -184,10 +185,11 @@ Contrast −15~+5 | Shadows +15~+40 | Sat −15~+5 | Temp 4800–5400 | Exposure
 §4 LUT 能力与局部蒙版（必读）
 ═══════════════════════════════════════
 LUT 仅全局：Exposure2012、Contrast2012、Temperature+Tint、Saturation、Clarity2012。  
-不能实现：主体蒙版、渐变、径向、局部 HSL。
+不能实现：主体蒙版、渐变、径向、局部 HSL、颜色分级、暗角、颗粒。
 
 P-主体分离 → editing_steps 局部建议；全局近似 confidence ≤0.52。  
-Highlights/Shadows/Whites/Blacks/Vibrance 不参与 LUT，但须填写（学习/XMP）；夜景/星野/雪景应积极使用。
+Highlights/Shadows/Whites/Blacks/Vibrance 不参与 LUT，但须填写（学习/XMP）；夜景/星野/雪景应积极使用。  
+**§7b 色彩扩展项（分级/HSL/暗角/颗粒）不参与 LUT**；主要写入 XMP，在 Lightroom 中查看效果。底片 LUT 试看仍为全局近似。
 
 ═══════════════════════════════════════
 §5 confidence 规则
@@ -197,6 +199,7 @@ Highlights/Shadows/Whites/Blacks/Vibrance 不参与 LUT，但须填写（学习/
 | 子类清晰、与画面一致 | 0.65–0.85 |
 | 子类对但量化困难 | 0.45–0.64 |
 | 蒙版全局近似 | ≤ 0.52 |
+| §7b 色彩扩展（分级/HSL/颗粒暗角） | 0.40–0.58（风格明确时最高 ~0.68） |
 | 已调色 JPG / 重滤镜 | ≤ 0.50 |
 | 子类不确定（fallback） | 在对应档基础上下调 0.10~0.15 |
 
@@ -205,12 +208,40 @@ Highlights/Shadows/Whites/Blacks/Vibrance 不参与 LUT，但须填写（学习/
 ═══════════════════════════════════════
 §6 数值硬范围
 ═══════════════════════════════════════
-Exposure2012：−5~+5 | 其余 slider：−100~+100 | Temperature：2000~50000 | Tint：−150~+150
+Exposure2012：−5~+5 | 多数 slider：−100~+100 | Temperature：2000~50000 | Tint：−150~+150  
+分离色调/分级 Hue：0~360 | 分离色调 Sat：0~100 | PostCropVignetteMidpoint / Grain：0~100
 
 ═══════════════════════════════════════
-§7 白名单（11 项必须全部输出）
+§7 白名单
 ═══════════════════════════════════════
+
+§7a 基础模块（11 项 — **必须全部输出**）  
 Exposure2012, Contrast2012, Highlights2012, Shadows2012, Whites2012, Blacks2012, Temperature, Tint, Saturation, Vibrance, Clarity2012
+
+§7b 色彩扩展模块（24 项 — **稀疏可选，禁止全填**）  
+**颜色分级：** SplitToningShadowHue, SplitToningShadowSaturation, SplitToningHighlightHue, SplitToningHighlightSaturation, SplitToningBalance, ColorGradeGlobalHue, ColorGradeGlobalSat, ColorGradeMidtoneHue, ColorGradeMidtoneSat  
+**定向 HSL：** SaturationAdjustmentOrange, LuminanceAdjustmentOrange, SaturationAdjustmentRed, HueAdjustmentBlue, SaturationAdjustmentBlue, LuminanceAdjustmentBlue, HueAdjustmentAqua, SaturationAdjustmentAqua, LuminanceAdjustmentAqua, HueAdjustmentGreen, SaturationAdjustmentGreen, LuminanceAdjustmentGreen  
+**效果：** PostCropVignetteAmount, PostCropVignetteMidpoint, GrainAmount
+
+§7b 输出规则（必读 — 避免颜色过浓或怪异）  
+1. **默认不输出**：画面无明显胶片/青橙/霓虹/颗粒/暗角/天空草地特征时，§7b 字段 **全部省略**（不要写 key，不要写 0 凑数）  
+2. **单次分析建议**：§7b 同时输出的非零项 **≤ 8 个**；优先 3~6 个最相关的  
+3. **禁止堆叠**：已有明显 SplitToning 时，勿再大幅叠加 GlobalSat + 多色 HSL 同向饱和；宁缺毋滥  
+4. **幅度克制**：HSL 单项通常 |value| ≤ 25；分级 Sat 通常 ≤ 35；已高饱和画面（霓虹/重滤镜）再减半  
+5. **confidence**：§7b 默认 0.40~0.58；仅风格非常明确时 0.55~0.68  
+6. **priority_adjustments**：可含 §7b 字段，但 3~5 项中 **至少 2 项须来自 §7a 基础模块**
+
+风格 → §7b 优先字段（仅参考，仍须克制）  
+| 风格 | 可考虑的 §7b 字段 |
+|------|-------------------|
+| 胶片 / 复古 | SplitToning*（阴影微青+高光微黄）、GrainAmount、PostCropVignetteAmount |
+| 青橙 / 电影感 | SplitToning Shadow 青(200–220°) + Highlight 橙(35–50°)，Sat 各 10–28 |
+| 夜景路灯 | SplitToning 阴影冷、高光暖；Blue/Aqua Lum 略压 |
+| 港式霓虹 | ColorGradeMidtoneHue/Sat、SplitToningHighlight、Tint 配合；HSL 慎多加 |
+| 人像肤色 | LuminanceAdjustmentOrange +5~+18，SaturationAdjustmentOrange −5~+8 |
+| 天空蓝 | Hue/Sat/Lum AdjustmentBlue，勿与全局 Sat 双重拉高 |
+| 草原绿 | SaturationAdjustmentGreen、LuminanceAdjustmentGreen |
+| 海湖青蓝 | Hue/Sat AdjustmentAqua，Blue Lum 略压 |
 
 ═══════════════════════════════════════
 §8 正例（三则 — 勿照抄数值）
@@ -249,7 +280,7 @@ Exposure2012, Contrast2012, Highlights2012, Shadows2012, Whites2012, Blacks2012,
     {"step": 2, "title": "反差与高光", "description": "压高光保留霓虹细节，提阴影看暗部信息。"},
     {"step": 3, "title": "色彩", "description": "用 Tint 表达洋红霓虹；饱和适度，避免全局过艳。"}
   ],
-  "priority_adjustments": ["Tint", "Highlights2012", "Shadows2012", "Contrast2012"],
+  "priority_adjustments": ["Tint", "Highlights2012", "SplitToningHighlightHue", "Contrast2012"],
   "parameters": {
     "Exposure2012": {"value": 0.12, "confidence": 0.55},
     "Contrast2012": {"value": 22, "confidence": 0.70},
@@ -261,7 +292,13 @@ Exposure2012, Contrast2012, Highlights2012, Shadows2012, Whites2012, Blacks2012,
     "Tint": {"value": 18, "confidence": 0.73},
     "Saturation": {"value": 16, "confidence": 0.62},
     "Vibrance": {"value": 8, "confidence": 0.52},
-    "Clarity2012": {"value": 10, "confidence": 0.56}
+    "Clarity2012": {"value": 10, "confidence": 0.56},
+    "SplitToningShadowHue": {"value": 210, "confidence": 0.52},
+    "SplitToningShadowSaturation": {"value": 18, "confidence": 0.50},
+    "SplitToningHighlightHue": {"value": 42, "confidence": 0.54},
+    "SplitToningHighlightSaturation": {"value": 22, "confidence": 0.51},
+    "ColorGradeMidtoneHue": {"value": 310, "confidence": 0.48},
+    "ColorGradeMidtoneSat": {"value": 14, "confidence": 0.46}
   }
 }
 
@@ -292,7 +329,9 @@ Exposure2012, Contrast2012, Highlights2012, Shadows2012, Whites2012, Blacks2012,
 ═══════════════════════════════════════
 §9 反例
 ═══════════════════════════════════════
-- 未分类；parameters 缺少 11 字段之一  
+- 未分类；§7a 缺少 11 字段之一  
+- §7b 全填 24 项或同时非零 >8 项（颜色过浓/怪异）  
+- 无胶片/霓虹特征却输出 Grain + 全套 SplitToning + 多色 HSL  
 - 路灯夜景误用霓虹（Tint +20）；蓝调时刻用全黑霓虹参数  
 - 星空 Temp 6500+；人像忽略面部；主体分离 confidence>0.52  
 - 已调色 JPG 仍大幅 Sat+/Contrast+；子类不确定却 Temperature=5500 全表近零  
@@ -301,4 +340,4 @@ Exposure2012, Contrast2012, Highlights2012, Shadows2012, Whites2012, Blacks2012,
 ═══════════════════════════════════════
 §10 输出
 ═══════════════════════════════════════
-对**当前上传图片**：§2 分类（含 JPG/不确定判断）→ §3 子类区间 → **11 字段全输出** → JSON。
+对**当前上传图片**：§2 分类（含 JPG/不确定判断）→ §3 子类区间 → **§7a 十一项全输出** → §7b 仅按需稀疏附加 → JSON。

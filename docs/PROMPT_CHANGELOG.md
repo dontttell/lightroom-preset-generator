@@ -6,6 +6,19 @@
 
 Prompt files live under `config/prompts/`. Runtime path is chosen by `analysis.language` and optional `analysis.prompt_file` in `config/ai_config.local.yaml`.
 
+## style_analysis.v1.1 — color extension whitelist (2026-07-02)
+
+- **Files:** `style_analysis.txt`, `style_analysis.en.txt`, `ai/parameter_registry.py`, `schemas/style_analysis.v1.1.json`, `core/metadata_parser.py`, `docs/AI_RESPONSE_SCHEMA.md`
+- **Schema:** `style_analysis.v1` → **`style_analysis.v1.1`** (backward compatible: §7a core 11 unchanged)
+- **Motivation:** Better film / night / teal-orange / neon / skin / sky / grass / vignette / grain via XMP; avoid forcing all color keys (oversaturated weird output)
+- **Added fields (24, sparse optional §7b):**
+  - Color grading: SplitToning* (5), ColorGradeGlobal/Midtone (4)
+  - Targeted HSL: Orange/Red/Blue/Aqua/Green (12)
+  - Effects: PostCropVignetteAmount/Midpoint, GrainAmount (3)
+- **LUT:** unchanged — only 6 global keys; §7b is XMP + learning panel only
+- **Prompt rules:** §7a all 11 required; §7b omit by default, ≤8 non-zero, no stacking, lower confidence
+- **Regression:** Neon night (B), golden hour portrait (A), plain daylight (should omit §7b)
+
 ## style_analysis.v1 — prompt revision 4 (2026-07-01)
 
 - **Files:** `style_analysis.txt`, `style_analysis.en.txt` (full parity incl. §8 JSON)

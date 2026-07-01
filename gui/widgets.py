@@ -1,6 +1,6 @@
 """
 GUI 组件 — 学习面板、状态卡片、图像区、AI 提醒
-对齐 UI_UX_DESIGN.md v1.6.0
+对齐 UI_UX_DESIGN.md v1.6.2
 """
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QScrollArea,
     QSizePolicy,
     QSplitter,
     QStackedWidget,
@@ -149,8 +150,8 @@ class LabeledPreview(QWidget):
         self.preview = ImagePreviewLabel(
             placeholder,
             accept_drops=accept_drops,
-            min_width=280,
-            min_height=420,
+            min_width=min_width,
+            min_height=min_height,
         )
         if accept_drops:
             self.preview.file_dropped.connect(self.file_dropped.emit)
@@ -173,20 +174,39 @@ class ImageZone(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumHeight(520)
+        self.setMinimumHeight(400)
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
-        root.setSpacing(8)
+        root.setSpacing(0)
 
+        self._zone_split = QSplitter(Qt.Orientation.Vertical)
+        self._zone_split.setChildrenCollapsible(False)
+        self._zone_split.setObjectName("imageZoneSplit")
+
+        ref_wrap = QWidget()
+        ref_layout = QVBoxLayout(ref_wrap)
+        ref_layout.setContentsMargins(0, 0, 0, 0)
+        ref_layout.setSpacing(6)
         ref_caption = QLabel(C.t("image.reference"))
         ref_caption.setObjectName("previewCellLabel")
-        root.addWidget(ref_caption)
+        ref_layout.addWidget(ref_caption)
+        self._reference = ImagePreviewLabel(min_width=320, min_height=180)
+        ref_layout.addWidget(self._reference, stretch=1)
+        self._zone_split.addWidget(ref_wrap)
 
-        self._reference = ImagePreviewLabel(min_width=400, min_height=280)
-        root.addWidget(self._reference, stretch=3)
+        self._plate_scroll = QScrollArea()
+        self._plate_scroll.setObjectName("platePreviewScroll")
+        self._plate_scroll.setWidgetResizable(True)
+        self._plate_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._plate_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._plate_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         self._plate_section = QGroupBox(C.t("plate.section_title"))
         self._plate_section.setObjectName("platePreviewSection")
+        self._plate_section.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Minimum,
+        )
         plate_outer = QVBoxLayout(self._plate_section)
         plate_outer.setContentsMargins(8, 12, 8, 8)
         plate_outer.setSpacing(8)
@@ -221,13 +241,14 @@ class ImageZone(QWidget):
         plate_outer.addWidget(self._plate_status)
 
         self._plate_stack = QStackedWidget()
-        plate_outer.addWidget(self._plate_stack, stretch=2)
+        self._plate_stack.setMinimumHeight(160)
+        plate_outer.addWidget(self._plate_stack, stretch=1)
 
         self._pick_preview = ImagePreviewLabel(
             C.t("plate.placeholder_before"),
             accept_drops=False,
-            min_width=360,
-            min_height=280,
+            min_width=280,
+            min_height=140,
         )
         self._pick_preview.file_dropped.connect(self.plate_dropped.emit)
         self._plate_stack.addWidget(self._pick_preview)
@@ -240,15 +261,15 @@ class ImageZone(QWidget):
             C.t("plate.label_before"),
             C.t("plate.placeholder_before"),
             accept_drops=False,
-            min_width=240,
-            min_height=280,
+            min_width=200,
+            min_height=140,
         )
         self._pane_before.file_dropped.connect(self.plate_dropped.emit)
         self._pane_after = LabeledPreview(
             C.t("plate.label_after"),
             C.t("plate.placeholder_after"),
-            min_width=240,
-            min_height=280,
+            min_width=200,
+            min_height=140,
         )
         self._compare_split.addWidget(self._pane_before)
         self._compare_split.addWidget(self._pane_after)
@@ -262,7 +283,13 @@ class ImageZone(QWidget):
         footnote.setObjectName("statusSubtitle")
         plate_outer.addWidget(footnote)
 
-        root.addWidget(self._plate_section, stretch=2)
+        self._plate_scroll.setWidget(self._plate_section)
+        self._zone_split.addWidget(self._plate_scroll)
+        self._zone_split.setSizes([300, 260])
+        self._zone_split.setStretchFactor(0, 3)
+        self._zone_split.setStretchFactor(1, 2)
+
+        root.addWidget(self._zone_split)
         self.show_plate_pick(guide=C.t("plate.idle_hint"))
 
     def _set_upload_button_label(self, *, replace: bool) -> None:
@@ -271,7 +298,7 @@ class ImageZone(QWidget):
         )
 
     def set_plate_section_visible(self, visible: bool) -> None:
-        self._plate_section.setVisible(visible)
+        self._plate_scroll.setVisible(visible)
 
     def set_upload_enabled(self, enabled: bool) -> None:
         self._btn_upload.setEnabled(enabled)

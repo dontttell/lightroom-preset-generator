@@ -15,10 +15,15 @@ build/
 # 本地测试 / 用户导出（不上传）
 _test.jpg
 test_*.jpg
+test/
 *.xmp
+*.cube
 
 # 用户 AI 配置（含 Key）
 config/ai_config.local.yaml
+
+# interface 目录重复/临时截图（保留 guidebook 正式配图即可）
+interface/path-b-plate.png
 
 # IDE
 .vscode/

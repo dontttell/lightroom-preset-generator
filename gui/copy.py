@@ -126,6 +126,7 @@ COPY: Dict[str, str] = {
         "火山方舟若此处失败，仍可用一张参考图点击「开始 AI 分析」验证；"
         "部分账号对 /models 列表接口支持不完整。"
     ),
+    "settings.volcengine_model_confirm": "仍要保存吗？错误模型 ID 会导致 AI 分析 404。",
     "settings.privacy": (
         "选择服务商后 Base URL 将自动填充。填写 API Key 与模型 ID 后，"
         "未能精确识别的图片可发起 AI 分析。图片将上传至对应接口，请遵守服务商隐私政策。"

@@ -17,7 +17,13 @@ from PyQt6.QtWidgets import (
 from gui import copy as C
 from ai.factory import create_analyzer
 from config.ai_config import AiConfig, load_ai_config, save_ai_config
-from config.provider_presets import PRESET_CUSTOM, get_preset, list_presets
+from config.provider_presets import (
+    PRESET_CUSTOM,
+    get_preset,
+    list_presets,
+    openai_compatible_base_url_warning,
+    volcengine_model_format_warning,
+)
 
 
 class SettingsDialog(QDialog):
@@ -137,18 +143,43 @@ class SettingsDialog(QDialog):
 
     def _save(self) -> None:
         cfg = self._collect()
+        url_warn = openai_compatible_base_url_warning(cfg.resolved_base_url())
+        if url_warn:
+            QMessageBox.warning(self, C.t("settings.title"), url_warn)
+            return
         if cfg.resolved_provider_preset() == PRESET_CUSTOM.id and not cfg.base_url.strip():
             QMessageBox.warning(self, C.t("settings.title"), C.t("settings.error_custom_url"))
             return
+        if cfg.resolved_provider_preset() == "volcengine":
+            warn = volcengine_model_format_warning(cfg.model)
+            if warn:
+                reply = QMessageBox.warning(
+                    self,
+                    C.t("settings.title"),
+                    warn + "\n\n" + C.t("settings.volcengine_model_confirm"),
+                    QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
+                    QMessageBox.StandardButton.Cancel,
+                )
+                if reply != QMessageBox.StandardButton.Save:
+                    return
         save_ai_config(cfg)
         self._cfg = cfg
         self.accept()
 
     def _test_connection(self) -> None:
         cfg = self._collect()
+        url_warn = openai_compatible_base_url_warning(cfg.resolved_base_url())
+        if url_warn:
+            QMessageBox.warning(self, C.t("settings.test_connection"), url_warn)
+            return
         if not cfg.is_ready():
             QMessageBox.warning(self, C.t("settings.test_connection"), C.t("settings.error_missing_fields"))
             return
+        if cfg.resolved_provider_preset() == "volcengine":
+            warn = volcengine_model_format_warning(cfg.model)
+            if warn:
+                QMessageBox.warning(self, C.t("settings.test_connection"), warn)
+                return
         if cfg.resolved_provider_preset() == PRESET_CUSTOM.id and not cfg.resolved_base_url():
             QMessageBox.warning(self, C.t("settings.test_connection"), C.t("settings.error_custom_url"))
             return

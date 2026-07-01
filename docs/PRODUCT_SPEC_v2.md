@@ -1,7 +1,7 @@
 # Lightroom 预设学习器 — 产品功能与实现规格（v2）
 
-> 文档版本：v2.7.3  
-> 状态：待开发（规格定稿，部分 UI 已实现 v2）  
+> 文档版本：v2.8.0  
+> 状态：**v2 主路径已实现**（2026-07 持续迭代）  
 > 目标用户：想学习调色的摄影爱好者  
 > **UI/UX 专文档：** [UI_UX_DESIGN.md](./UI_UX_DESIGN.md)（布局、组件、色彩、状态机 — **改界面请先读此文档**）  
 > **界面文案主库：** 同上 **[§11 文案库](./UI_UX_DESIGN.md#11-文案规范与文案库copy-deck)** — 产品规格不重复维护字句  
@@ -268,6 +268,10 @@ API Base URL   [ 留空则使用 OpenAI 默认 ]   （可选）
 
 配置文件同步去掉 `provider` 对外要求（实现层可保留内部默认值，文档不再要求用户填写）。
 
+#### 4.5.1 实现补充（2026-07）
+
+设置页增加 **服务商预设** 下拉（`openai` / `volcengine` / `custom`），仅用于自动填充 **OpenAI 兼容** Base URL 与字段提示；**不**引入第二种 API 协议。用户仍填写 Key + 模型；火山方舟须使用 `/api/v3/chat/completions`，模型栏为 Model ID 或 `ep-` 接入点。实现见 `config/provider_presets.py`、`gui/settings_dialog.py`。
+
 ---
 
 
@@ -464,7 +468,7 @@ analysis:
 
 **UI：**
 
-- 布局与交互见 **[UI_UX_DESIGN.md §3.4](./UI_UX_DESIGN.md#34-底片试看布局定稿-v14)**（v1.5：参考图在上 + 底片预览在下；**AI 完成后左栏默认可见**，见 §3.4.6）  
+- 布局与交互见 **[UI_UX_DESIGN.md §3.4](./UI_UX_DESIGN.md#34-底片试看布局定稿-v16)**（v1.6：左栏单区域；v1.6.2 纵向分割 + 滚动，见 §3.4.5）  
 - 文案 key：`plate.*`、`status.lut_preview_ok`（§11）  
 - 仅路径 B 且已有内存 LUT 时启用  
 - 免责声明：§11 `plate.footnote`
@@ -778,41 +782,42 @@ exifread 或 pyexiv2     # metadata 解析备选
 
 ### Phase 1 — 精确路径（约 3–5 天）
 
-- [ ] `metadata_detector.py` + `metadata_parser.py`  
-- [ ] 主窗口路径 A UI + 精确导出  
-- [ ] 移除「打开即规则分析」为默认行为  
+- [x] `metadata_detector.py` + `metadata_parser.py`  
+- [x] 主窗口路径 A UI + 精确导出  
+- [x] 移除「打开即规则分析」为默认行为  
 
 
 
 ### Phase 2 — AI 路径（约 4–6 天）
 
-- [ ] 设置页 + `ai_config`  
-- [ ] OpenAI provider + prompt + schema  
-- [ ] 路径 B UI（思路 + 参数）  
-- [ ] 参考 XMP 导出  
+- [x] 设置页 + `ai_config`  
+- [x] OpenAI 兼容 provider + prompt + schema（当前 **`style_analysis.v1.1`**）  
+- [x] 路径 B UI（思路 + 参数）  
+- [x] 参考 XMP 导出  
 
 
 
 ### Phase 3 — LUT（约 2–3 天）
 
-- [ ] `lut_generator.py` + `lut_applier.py`  
-- [ ] 内存 LUT + 导出 .cube  
-- [ ] 底片试看 UI v1.5（UI §3.4.6：AI 完成后左栏默认显示底片区 + 双按钮；见 §3.4.5 差距说明）  
+- [x] `lut_generator.py` + `lut_applier.py`  
+- [x] 内存 LUT + 导出 .cube  
+- [x] 底片试看 UI v1.6（左栏单区域 + 双按钮；UI §3.4）  
 
 
 
 ### Phase 4 — 打磨（约 2 天）
 
-- [ ] 导出对话框、文案、错误处理  
-- [ ] 测试连接、隐私说明文案  
-- [ ] 手动测试矩阵（见 §13）  
+- [x] 导出对话框、文案、错误处理  
+- [x] 测试连接、隐私说明文案  
+- [ ] 手动测试矩阵（见 §13） — 持续回归  
 
 ### Phase 5 — UI 去重与轻量美化（约 1–2 天，可与 Phase 4 并行）
 
 - [x] §7.3 控件去重（设置单入口、移除右侧重复按钮、预设名移入导出窗）  
 - [x] §7.4.3 L1 QSS 主题 + StatusCard / 预览区样式  
-- [x] **UI §3.4.6 底片试看可见性**（v1.5 已编码）  
+- [x] **UI §3.4 底片试看可见性**（v1.6 已编码）  
 - [x] **UI §6.8 AI 未配置三层提醒**（Banner + 状态栏红标 + 路径 B InlineAlert）  
+- [x] **UI §3.4.5 试看区滚动与纵向分割**（v1.6.2）  
 
 **合计估算：** 约 12–18 人天（单人，含 Phase 5）  
 
@@ -849,6 +854,7 @@ exifread 或 pyexiv2     # metadata 解析备选
 | B4  | 选底片 LUT 预览        | AI 完成后**无需手动展开**右栏；左栏即见「上传底片」「应用 LUT 预览」；本地 Before/After（UI §3.4.6） |
 | B4a | 路径 A 图              | **无**底片试看 UI（左栏仅当前图） |
 | B4b | 路径 B AI 完成默认态   | 左栏参考图 + 底片预览区**同时可见** |
+| B4c | 窗口高度不足 | 可拖动参考图/试看区分割条；试看区内容超出时可**纵向滚动**（UI §3.4.5） |
 | B5  | 未点导出              | 磁盘无新文件                   |
 
 
@@ -893,6 +899,7 @@ exifread 或 pyexiv2     # metadata 解析备选
 
 | 版本   | 日期         | 说明                        |
 | ---- | ---------- | ------------------------- |
+| v2.8.0 | 2026-07-02 | 状态改已实现；Phase 1–5 勾选；§4.5.1 服务商预设；schema v1.1；验收 B4c 滚动/分割 |
 | v2.0 | 2026-06-30 | 初始规格：双路径、AI、LUT、底片预览、手动导出 |
 | v2.1 | 2026-06-30 | 补充 AI 费用/Cursor 说明；修正文档笔误与 F15 删除 |
 | v2.2 | 2026-06-30 | 明确导出路径必选；API 默认留空；补充可运行性保障策略 §17 |
