@@ -26,6 +26,7 @@ Desktop **PyQt6** app: learn Lightroom grading from a reference image.
 | UI / copy | [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) §11, [`gui/copy.py`](gui/copy.py) |
 | Code flow | [`docs/CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) |
 | AI / prompt / JSON | [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md), [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) |
+| Style recipes / Plan B | [`docs/STYLE_RECIPE_SYSTEM.md`](docs/STYLE_RECIPE_SYSTEM.md), [`config/style_recipes/`](config/style_recipes/) |
 | Prompt history (audit) | [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) |
 
 **Rules (must follow):** [`.cursor/rules/`](.cursor/rules/)
@@ -40,8 +41,9 @@ gui/workers.py     MetadataWorker | AiAnalysisWorker
 core/metadata_*    Path A
 ai/                Path B provider, parse, validate
 config/prompts/    System prompts (versioned)
-config/provider_presets.py  Settings URL presets (OpenAI / Volcengine / custom)
-schemas/           style_analysis.v1.1.json (active)
+config/style_recipes/  Plan B YAML looks + README
+ai/style_recipes.py    match_recipe(), merge_recipe_with_refine()
+schemas/           style_analysis.v1.1.json (active); style_classify.v1.json (Plan B Call①)
 lut/               LUT bake + plate preview
 generators/        XMP export
 ```
@@ -58,7 +60,9 @@ Legacy (do not wire as default): `analyzers/`, `preview/preset_simulator.py`
 2. Update [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) when changing `config/prompts/`  
 3. Keep `schemas/`, `ai/parameter_registry.py`, and prompt field lists aligned  
 4. Run `python scripts/verify_ai_schema.py` if present  
-5. Commit message: `prompt(style_analysis.v1.1): …` or `feat(ai): …`
+5. After editing recipes: `python scripts/verify_style_recipes.py`  
+6. Plan B dual-call: see [`docs/STYLE_RECIPE_SYSTEM.md`](docs/STYLE_RECIPE_SYSTEM.md) before wiring Provider  
+7. Commit message: `prompt(style_analysis.v1.1): …` or `feat(ai): …`
 
 ### Editing UI copy
 

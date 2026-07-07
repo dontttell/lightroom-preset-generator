@@ -46,6 +46,7 @@
 |------|------|----------|
 | [`CODE_ARCHITECTURE.md`](./CODE_ARCHITECTURE.md) | 全项目模块图、路径 A/B 调用链、配置与导出 | 新增模块、改主流程、改线程模型 |
 | [`AI_ARCHITECTURE.md`](./AI_ARCHITECTURE.md) | Path B 专章：Provider → Prompt → 解析 → LUT/XMP | 改 `ai/`、改 prompt 加载、改校验策略 |
+| [`STYLE_RECIPE_SYSTEM.md`](./STYLE_RECIPE_SYSTEM.md) | 路线 B：配方库、双次 AI、merge 规则 | 增改配方 YAML、接线双次调用、改匹配/合并逻辑 |
 
 `PRODUCT_SPEC_v2.md` §5–§6 保留**产品向**架构摘要；**实现细节以 L2 为准**，避免两处重复维护长段落。
 
@@ -60,6 +61,11 @@
 | [`schemas/style_analysis.v1.json`](../schemas/style_analysis.v1.json) | 机器读 Schema | 历史 v1（11 项核心） |
 | [`config/prompts/style_analysis.txt`](../config/prompts/style_analysis.txt) | 运行时 Prompt（zh-CN） | 正文可人工审核；须声明 schema 版本 |
 | [`config/prompts/style_analysis.en.txt`](../config/prompts/style_analysis.en.txt) | 运行时 Prompt（en） | 同上 |
+| [`config/style_recipes/*.yaml`](../config/style_recipes/) | 配方数据 | 路线 B 基准参数 + tweak_limits |
+| [`config/prompts/style_classify.txt`](../config/prompts/style_classify.txt) | Call① Prompt | 分类 only；schema `style_classify.v1` |
+| [`config/prompts/style_analysis_refine.txt`](../config/prompts/style_analysis_refine.txt) | Call② Prompt | 配方 delta 微调 |
+| [`schemas/style_classify.v1.json`](../schemas/style_classify.v1.json) | 机器读 Schema | Call① 分类 JSON |
+| [`ai/style_recipes.py`](../ai/style_recipes.py) | 配方加载 / 匹配 / merge | 与 YAML 同步 |
 | [`ai/parameter_registry.py`](../ai/parameter_registry.py) | 代码内白名单 | 与 schema、prompt 参数列表一致 |
 
 **版本号：** 当前 **`style_analysis.v1.1`**。破坏性变更 → 新 schema 文件 + 新 prompt 版本段 + changelog 条目。

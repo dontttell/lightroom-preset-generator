@@ -1,0 +1,54 @@
+id: blue-hour-landscape
+version: 1
+name_zh: 蓝调时刻风光
+description: 日落后天光未绝，靛蓝天空、低饱和、柔和反差
+
+match:
+  categories: [L]
+  subtypes: [L-蓝调时刻]
+  keywords_zh: [蓝调, 黄昏, 暮色, 靛蓝, 傍晚]
+  keywords_en: [blue hour, twilight, dusk, indigo]
+
+default_confidence: 0.71
+
+parameters:
+  Exposure2012: 0.18
+  Contrast2012: 4
+  Highlights2012: -12
+  Shadows2012: 18
+  Whites2012: -6
+  Blacks2012: -8
+  Temperature: 4850
+  Tint: 0
+  Saturation: 2
+  Vibrance: 4
+  Clarity2012: 3
+
+optional_7b:
+  HueAdjustmentBlue: -6
+  SaturationAdjustmentBlue: 6
+  LuminanceAdjustmentBlue: -8
+
+tweak_limits:
+  Exposure2012: [-0.20, 0.35]
+  Contrast2012: [-12, 15]
+  Highlights2012: [-22, 5]
+  Shadows2012: [0, 28]
+  Whites2012: [-15, 8]
+  Blacks2012: [-18, 5]
+  Temperature: [-500, 400]
+  Tint: [-12, 12]
+  Saturation: [-12, 12]
+  Vibrance: [-8, 12]
+  Clarity2012: [-8, 10]
+
+priority_adjustments:
+  - Temperature
+  - Shadows2012
+  - Highlights2012
+  - HueAdjustmentBlue
+
+editing_hints:
+  - 勿与全黑夜景霓虹参数混用
+  - 天空靛蓝靠 Temp 偏冷 + 蓝色 HSL 微调
+  - 饱和整体克制，避免夜景假艳

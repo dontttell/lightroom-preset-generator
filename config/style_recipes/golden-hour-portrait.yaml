@@ -1,0 +1,53 @@
+id: golden-hour-portrait
+version: 1
+name_zh: 黄金时刻人像
+description: 侧逆光暖调，提亮面部、压高光、自然饱和
+
+match:
+  categories: [P, M]
+  subtypes: [P-室外黄金时刻, P-室外逆光/剪影]
+  keywords_zh: [黄金时刻, 日落, 逆光, 轮廓光, 暖调]
+  keywords_en: [golden hour, sunset, backlight, warm]
+
+default_confidence: 0.74
+
+parameters:
+  Exposure2012: 0.42
+  Contrast2012: 6
+  Highlights2012: -22
+  Shadows2012: 18
+  Whites2012: 5
+  Blacks2012: -8
+  Temperature: 6550
+  Tint: 4
+  Saturation: 4
+  Vibrance: 14
+  Clarity2012: 2
+
+optional_7b:
+  LuminanceAdjustmentOrange: 12
+  SaturationAdjustmentOrange: 2
+
+tweak_limits:
+  Exposure2012: [-0.40, 0.55]
+  Contrast2012: [-8, 18]
+  Highlights2012: [-35, 0]
+  Shadows2012: [0, 30]
+  Whites2012: [-10, 15]
+  Blacks2012: [-18, 5]
+  Temperature: [-400, 800]
+  Tint: [-8, 14]
+  Saturation: [-10, 12]
+  Vibrance: [0, 20]
+  Clarity2012: [-8, 10]
+
+priority_adjustments:
+  - Temperature
+  - Exposure2012
+  - Highlights2012
+  - Vibrance
+
+editing_hints:
+  - 先判断是补光救脸还是刻意剪影分支
+  - 剪影分支应显著降 Exposure、升 Contrast
+  - 暖色来自低角度 sun，勿仅靠 Sat 堆色

@@ -1,0 +1,57 @@
+id: neon-night-city
+version: 1
+name_zh: 城市夜景霓虹
+description: 多色点光源、洋红倾向、大反差；非路灯钠灯场景
+
+match:
+  categories: [L]
+  subtypes: [L-城市夜景霓虹]
+  keywords_zh: [霓虹, 夜景, 城市, LED, 招牌, 车灯, 港风]
+  keywords_en: [neon, night, city, LED, signage]
+
+default_confidence: 0.70
+
+parameters:
+  Exposure2012: 0.12
+  Contrast2012: 22
+  Highlights2012: -38
+  Shadows2012: 28
+  Whites2012: -12
+  Blacks2012: -18
+  Temperature: 5800
+  Tint: 18
+  Saturation: 16
+  Vibrance: 8
+  Clarity2012: 10
+
+optional_7b:
+  SplitToningShadowHue: 210
+  SplitToningShadowSaturation: 18
+  SplitToningHighlightHue: 42
+  SplitToningHighlightSaturation: 22
+  ColorGradeMidtoneHue: 310
+  ColorGradeMidtoneSat: 14
+
+tweak_limits:
+  Exposure2012: [-0.15, 0.25]
+  Contrast2012: [0, 25]
+  Highlights2012: [-45, -10]
+  Shadows2012: [10, 35]
+  Whites2012: [-20, 0]
+  Blacks2012: [-25, -5]
+  Temperature: [-600, 600]
+  Tint: [5, 25]
+  Saturation: [-5, 20]
+  Vibrance: [-8, 15]
+  Clarity2012: [0, 15]
+
+priority_adjustments:
+  - Tint
+  - Highlights2012
+  - Contrast2012
+  - SplitToningHighlightHue
+
+editing_hints:
+  - 与 L-夜景路灯 区分：霓虹 Tint 可明显偏洋红
+  - 压高光保留霓虹细节，提阴影看暗部
+  - §7b 勿堆叠过多，已有 SplitToning 时慎加 GlobalSat

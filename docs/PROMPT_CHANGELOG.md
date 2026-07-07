@@ -6,6 +6,15 @@
 
 Prompt files live under `config/prompts/`. Runtime path is chosen by `analysis.language` and optional `analysis.prompt_file` in `config/ai_config.local.yaml`.
 
+## style_classify.v1 + style_refine prompts — Plan B recipe pipeline (2026-07-07)
+
+- **Files:** `style_classify.txt`, `style_analysis_refine.txt`, `config/style_recipes/*.yaml`, `ai/style_recipes.py`, `schemas/style_classify.v1.json`, `docs/STYLE_RECIPE_SYSTEM.md`, `scripts/verify_style_recipes.py`
+- **Schema:** new **`style_classify.v1`** (Call①); Call② refine output shape documented in `STYLE_RECIPE_SYSTEM.md` (not yet a separate JSON schema file)
+- **Motivation:** Anchor slider baselines in curated YAML recipes; AI classifies then applies bounded deltas instead of guessing all 11 core values from scratch
+- **Runtime:** **Not wired** — default remains single-call `style_analysis.v1.1`; enable via future `use_recipe_pipeline: true`
+- **Recipes (7):** generic-daylight-landscape, film-lowsat-meadow, cinematic-teal-orange, soft-portrait-natural, golden-hour-portrait, blue-hour-landscape, neon-night-city
+- **Regression:** `python scripts/verify_style_recipes.py`; meadow keyword smoke test in script
+
 ## style_analysis.v1.1 — color extension whitelist (2026-07-02)
 
 - **Files:** `style_analysis.txt`, `style_analysis.en.txt`, `ai/parameter_registry.py`, `schemas/style_analysis.v1.1.json`, `core/metadata_parser.py`, `docs/AI_RESPONSE_SCHEMA.md`

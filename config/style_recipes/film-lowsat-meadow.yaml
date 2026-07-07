@@ -1,0 +1,57 @@
+id: film-lowsat-meadow
+version: 1
+name_zh: 胶片感低饱和草原
+description: 柔和对比、略降饱和、阴影微青高光微暖；适合牧场/草原/晴天户外
+
+match:
+  categories: [L]
+  subtypes: [L-自然通用, L-海雾晨昏]
+  keywords_zh: [草原, 牧场, 草地, 牛群, 羊群, 胶片, 低饱和, 柔和, 复古]
+  keywords_en: [meadow, pasture, film, low saturation, muted, vintage]
+
+default_confidence: 0.72
+
+parameters:
+  Exposure2012: 0.18
+  Contrast2012: -10
+  Highlights2012: -8
+  Shadows2012: 12
+  Whites2012: -6
+  Blacks2012: -10
+  Temperature: 5750
+  Tint: 2
+  Saturation: -12
+  Vibrance: -3
+  Clarity2012: -4
+
+optional_7b:
+  SplitToningShadowHue: 195
+  SplitToningShadowSaturation: 12
+  SplitToningHighlightHue: 45
+  SplitToningHighlightSaturation: 10
+  GrainAmount: 18
+
+tweak_limits:
+  Exposure2012: [-0.25, 0.25]
+  Contrast2012: [-15, 12]
+  Highlights2012: [-18, 8]
+  Shadows2012: [-8, 20]
+  Whites2012: [-15, 8]
+  Blacks2012: [-15, 5]
+  Temperature: [-500, 500]
+  Tint: [-12, 12]
+  Saturation: [-18, 8]
+  Vibrance: [-12, 10]
+  Clarity2012: [-12, 8]
+
+priority_adjustments:
+  - Contrast2012
+  - Saturation
+  - Temperature
+  - SplitToningShadowHue
+  - GrainAmount
+
+editing_hints:
+  - 草地与天空已够艳时勿再加 Sat
+  - 胶片感靠低对比 + 分离色调 + 轻颗粒，非单纯降饱和
+  - 蓝天偏青时可微调 Temp 略暖

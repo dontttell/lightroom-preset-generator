@@ -1,0 +1,59 @@
+id: cinematic-teal-orange
+version: 1
+name_zh: 青橙电影感风光
+description: 阴影偏青、高光偏橙，中等反差；海岸/城市远景/电影调色参考
+
+match:
+  categories: [L, M]
+  subtypes: [L-海雾晨昏, L-自然通用, L-城市日间建筑]
+  keywords_zh: [青橙, 电影感, 电影, 海岸, 黄昏, 冷暖对比]
+  keywords_en: [teal, orange, cinematic, coast, moody]
+
+default_confidence: 0.70
+
+parameters:
+  Exposure2012: 0.12
+  Contrast2012: 14
+  Highlights2012: -18
+  Shadows2012: 20
+  Whites2012: -8
+  Blacks2012: -12
+  Temperature: 5200
+  Tint: -4
+  Saturation: 6
+  Vibrance: 8
+  Clarity2012: 8
+
+optional_7b:
+  SplitToningShadowHue: 205
+  SplitToningShadowSaturation: 22
+  SplitToningHighlightHue: 38
+  SplitToningHighlightSaturation: 24
+  SplitToningBalance: -8
+  HueAdjustmentAqua: -8
+  SaturationAdjustmentBlue: -6
+
+tweak_limits:
+  Exposure2012: [-0.25, 0.30]
+  Contrast2012: [-10, 20]
+  Highlights2012: [-30, 5]
+  Shadows2012: [-5, 25]
+  Whites2012: [-18, 8]
+  Blacks2012: [-18, 5]
+  Temperature: [-700, 400]
+  Tint: [-15, 12]
+  Saturation: [-12, 18]
+  Vibrance: [-8, 15]
+  Clarity2012: [-5, 15]
+
+priority_adjustments:
+  - SplitToningShadowHue
+  - SplitToningHighlightHue
+  - Contrast2012
+  - Shadows2012
+  - Temperature
+
+editing_hints:
+  - 青橙靠分离色调，勿与全局 Sat 双重拉高
+  - 阴影提太多会发灰，配合 Blacks 微调
+  - 建筑/海面纹理可用适度 Clarity

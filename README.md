@@ -15,10 +15,11 @@ A desktop app for photography enthusiasts who want to **learn how a Lightroom lo
 | **Path A — Precise recognition** | Shipped — embedded XMP + sidecar `.xmp` → real CRS parameters → XMP export |
 | **Path B — AI learning** | Shipped — OpenAI-compatible Vision API, user-triggered analysis, reference XMP / optional LUT |
 | **AI schema** | **`style_analysis.v1.1`** — 11 core sliders (§7a) + 24 sparse optional color keys (§7b) for richer XMP |
+| **Style recipe library (Plan B)** | **Shipped (data + merge logic)** — 7 YAML looks in `config/style_recipes/`; dual-call AI pipeline documented, **not wired** to Provider yet (default: single-call legacy) |
 | **Provider setup** | Settings presets: **OpenAI**, **Volcengine Ark (Doubao)**, **Custom** — auto-fill Base URL; still one protocol (`/chat/completions`) |
 | **Plate LUT preview** | UI **v1.6** — left column only |
 | **UI theme** | Dark QSS (L1), StatusCard, learning panel, export/settings dialogs |
-| **Verification** | `scripts/verify_ui.py`, `scripts/verify_ai_schema.py` |
+| **Verification** | `scripts/verify_ui.py`, `scripts/verify_ai_schema.py`, `scripts/verify_style_recipes.py` |
 
 **Not yet:** batch workflow, ExifTool fallback, automated test suite / CI, English UI locale, LICENSE file.
 
@@ -32,6 +33,7 @@ A desktop app for photography enthusiasts who want to **learn how a Lightroom lo
 - [How It Works](#how-it-works)
 - [Screenshots & Effect Showcase](#screenshots--effect-showcase)
 - [AI-Assisted Analysis (Prompt)](#ai-assisted-analysis-prompt)
+- [Style Recipe Library (Plan B)](#style-recipe-library-plan-b)
 - [Quick Start](#quick-start)
 - [Documentation Guide](#documentation-guide)
 - [Project Structure](#project-structure)
@@ -161,6 +163,31 @@ Prompt change history: [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) ·
 
 ---
 
+## Style Recipe Library (Plan B)
+
+Path B today uses a **single Vision call** (`style_analysis.txt` → full JSON). To improve **parameter stability** without losing narrative quality, the repo now includes **Plan B: style recipe library + optional dual-call AI**.
+
+| Layer | Status | Role |
+|-------|--------|------|
+| **Recipe YAML** | Shipped | 7 curated looks (meadow film, teal-orange, portraits, blue hour, neon night, generic fallback) in [`config/style_recipes/`](config/style_recipes/) |
+| **Local match + merge** | Shipped | [`ai/style_recipes.py`](ai/style_recipes.py) — `match_recipe()` + `merge_recipe_with_refine()` (baseline + bounded deltas) |
+| **Dual-call prompts** | Shipped | Call① [`style_classify.txt`](config/prompts/style_classify.txt) (scene only, no sliders) · Call② [`style_analysis_refine.txt`](config/prompts/style_analysis_refine.txt) (delta tweaks on recipe) |
+| **Provider wiring** | **Pending** | `use_recipe_pipeline: true` in config — not connected yet; runtime still uses legacy single call |
+
+**Why:** AI is strong at *describing* a look and *nudging* sliders; a fixed recipe anchors numeric starting points so subtype misclassification does not corrupt all 11 core values.
+
+**Flow (when enabled):**
+
+```
+Image → Call① classify → match_recipe() → Call② refine (deltas) → merge → normalize_style_analysis() → XMP / LUT
+```
+
+Full design: [`docs/STYLE_RECIPE_SYSTEM.md`](docs/STYLE_RECIPE_SYSTEM.md) · maintainer notes: [`config/style_recipes/README.md`](config/style_recipes/README.md)
+
+Validate recipes: `python scripts/verify_style_recipes.py`
+
+---
+
 ## Quick Start
 
 ### Requirements
@@ -233,6 +260,7 @@ This README is the **public intro**. For day-to-day work, open the doc that matc
 | [`docs/UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) | Human · UI | Layout, state machine, components, dark theme; **§11 copy deck** — **how the UI looks and reads** |
 | [`docs/CODE_ARCHITECTURE.md`](docs/CODE_ARCHITECTURE.md) | Human · code | Module map, Path A/B call chains, config, export — **how the whole codebase is wired** |
 | [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) | Human · AI | Path B / **AI call path**, Provider, prompt loading, validation, **prompt change SOP** |
+| [`docs/STYLE_RECIPE_SYSTEM.md`](docs/STYLE_RECIPE_SYSTEM.md) | Human · AI | Plan B: recipe library, dual-call AI design, merge rules, rollout checklist |
 | [`docs/AI_RESPONSE_SCHEMA.md`](docs/AI_RESPONSE_SCHEMA.md) | Human · contract | JSON field definitions, LUT/XMP routing, errors, schema versioning |
 | [`docs/PROMPT_CHANGELOG.md`](docs/PROMPT_CHANGELOG.md) | Human · audit | **Prompt change history** — why each prompt edit was made |
 | [`AGENTS.md`](AGENTS.md) | AI · entry | Short agent orientation: key paths, checklists, links to docs |
@@ -242,6 +270,10 @@ This README is the **public intro**. For day-to-day work, open the doc that matc
 | [`schemas/style_analysis.v1.1.json`](schemas/style_analysis.v1.1.json) | Machine | Active JSON Schema for Path B (`style_analysis.v1.1`; v1 retained for history) |
 | [`config/prompts/style_analysis.txt`](config/prompts/style_analysis.txt) | Machine + audit | Runtime system prompt (zh-CN) sent to the Vision API |
 | [`config/prompts/style_analysis.en.txt`](config/prompts/style_analysis.en.txt) | Machine + audit | Runtime system prompt (English) |
+| [`config/style_recipes/*.yaml`](config/style_recipes/) | Machine + audit | Style recipe baselines + tweak limits (Plan B) |
+| [`config/prompts/style_classify.txt`](config/prompts/style_classify.txt) | Machine + audit | Call① classification prompt (Plan B, pending wiring) |
+| [`config/prompts/style_analysis_refine.txt`](config/prompts/style_analysis_refine.txt) | Machine + audit | Call② delta refine prompt (Plan B, pending wiring) |
+| [`schemas/style_classify.v1.json`](schemas/style_classify.v1.json) | Machine | JSON Schema for Call① classification |
 | [`gui/copy.py`](gui/copy.py) | Runtime | On-screen strings; must match [`UI_UX_DESIGN.md`](docs/UI_UX_DESIGN.md) §11 |
 
 ### What to `@` when you want to change…
@@ -252,6 +284,7 @@ This README is the **public intro**. For day-to-day work, open the doc that matc
 | Layout, buttons, states, user-visible text | `docs/UI_UX_DESIGN.md` (+ sync `gui/copy.py`) |
 | Main flow, modules, Path A, export pipeline | `docs/CODE_ARCHITECTURE.md` |
 | **Path B / AI API / prompt / JSON validation** | `docs/AI_ARCHITECTURE.md` |
+| **Style recipes / dual-call AI (Plan B)** | `docs/STYLE_RECIPE_SYSTEM.md` + `config/style_recipes/` |
 | Add or change AI response fields | `docs/AI_RESPONSE_SCHEMA.md` + `schemas/` + `ai/parameter_registry.py` |
 | Edit prompt wording or tone | `config/prompts/` + **`docs/PROMPT_CHANGELOG.md`** |
 | Let Cursor follow repo conventions | `AGENTS.md` |
@@ -262,6 +295,7 @@ This README is the **public intro**. For day-to-day work, open the doc that matc
 |--------|-------------|
 | [`scripts/verify_ui.py`](scripts/verify_ui.py) | After GUI / layout changes |
 | [`scripts/verify_ai_schema.py`](scripts/verify_ai_schema.py) | After AI schema, registry, or validator changes |
+| [`scripts/verify_style_recipes.py`](scripts/verify_style_recipes.py) | After adding or editing `config/style_recipes/*.yaml` |
 
 **UI version:** window title — e.g. `Lightroom Preset Learner (UI 1.6.0)`.
 
@@ -271,16 +305,16 @@ This README is the **public intro**. For day-to-day work, open the doc that matc
 
 ```
 lightroom_preset_generator/
-├── ai/                  # OpenAI-compatible Vision provider, schema, service
+├── ai/                  # OpenAI-compatible Vision provider, schema, service, style_recipes
 ├── analyzers/           # v1 rule-based estimators (legacy; not main path in v2)
-├── config/              # App settings, AI config, provider presets, prompts
+├── config/              # App settings, AI config, provider presets, prompts, style_recipes/
 ├── core/                # Metadata detector/parser, session model, pipeline
 ├── docs/                # Product spec + UI/UX design
 ├── generators/          # XMP preset writer
 ├── gui/                 # PyQt6 main window, widgets, dialogs, QSS theme
 ├── lut/                 # Local LUT bake + apply for plate preview
 ├── preview/             # OpenCV preset simulator (legacy helper)
-├── scripts/             # verify_ui.py — preflight before launch
+├── scripts/             # verify_ui.py, verify_ai_schema.py, verify_style_recipes.py
 ├── main.py              # Entry point
 └── run.bat              # Windows launcher
 ```
@@ -362,6 +396,7 @@ Priorities aligned with [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md):
 
 ### Near term (P1)
 
+- [ ] Wire **Plan B dual-call AI** (`use_recipe_pipeline`) into Provider + optional settings toggle
 - [ ] Broader metadata compatibility testing + ExifTool fallback
 - [ ] Export / AI error handling hardening
 - [ ] Light theme or appearance toggle (spec §7.4 P2)

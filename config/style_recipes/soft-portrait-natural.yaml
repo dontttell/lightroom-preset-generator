@@ -1,0 +1,53 @@
+id: soft-portrait-natural
+version: 1
+name_zh: 室外自然光人像
+description: 以肤色与面部曝光为核心，饱和克制，优先 Vibrance
+
+match:
+  categories: [P]
+  subtypes: [P-室外自然光]
+  keywords_zh: [人像, 自然光, 日光, 户外人像, 肤色]
+  keywords_en: [portrait, natural light, daylight, skin]
+
+default_confidence: 0.74
+
+parameters:
+  Exposure2012: 0.35
+  Contrast2012: 4
+  Highlights2012: -16
+  Shadows2012: 16
+  Whites2012: 4
+  Blacks2012: -6
+  Temperature: 5450
+  Tint: 2
+  Saturation: 2
+  Vibrance: 10
+  Clarity2012: -2
+
+optional_7b:
+  LuminanceAdjustmentOrange: 10
+  SaturationAdjustmentOrange: -4
+
+tweak_limits:
+  Exposure2012: [-0.35, 0.45]
+  Contrast2012: [-12, 15]
+  Highlights2012: [-28, 5]
+  Shadows2012: [-5, 25]
+  Whites2012: [-12, 12]
+  Blacks2012: [-15, 8]
+  Temperature: [-500, 700]
+  Tint: [-12, 14]
+  Saturation: [-15, 12]
+  Vibrance: [-5, 18]
+  Clarity2012: [-10, 8]
+
+priority_adjustments:
+  - Exposure2012
+  - Temperature
+  - Highlights2012
+  - Vibrance
+
+editing_hints:
+  - 面部曝光决定 Exposure，勿只看背景
+  - 肤色 WB 优先于环境色
+  - Clarity 对人像宜偏软

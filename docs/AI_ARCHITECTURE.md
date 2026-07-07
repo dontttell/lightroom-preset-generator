@@ -21,6 +21,8 @@ Path B **仅**在以下条件同时满足时运行：
 
 ## 2. 调用链
 
+**当前默认（单次 AI）：**
+
 ```
 gui/main_window.run_ai_analysis()
   └─ AiAnalysisWorker.run()                    [gui/workers.py]
@@ -35,6 +37,10 @@ gui/main_window.run_ai_analysis()
        ├─ style_result_to_report()             [ai/service.py]
        └─ build_lut_for_report()               [ai/service.py → lut/lut_generator.py]
 ```
+
+**路线 B — 配方库 + 双次 AI（`use_recipe_pipeline: true` 时，待接线）：**
+
+见 [`STYLE_RECIPE_SYSTEM.md`](./STYLE_RECIPE_SYSTEM.md)。概要：Call① `style_classify.v1` → `ai/style_recipes.match_recipe()` → Call② `style_analysis_refine`（delta）→ `merge_recipe_with_refine()` → 仍走 `normalize_style_analysis()`。
 
 失败类型：
 
@@ -62,6 +68,11 @@ gui/main_window.run_ai_analysis()
 | `config/provider_presets.py` | 设置页服务商预设（OpenAI / 火山方舟 / 自定义 URL 提示） |
 | `config/prompts/style_analysis.txt` | 中文 system prompt |
 | `config/prompts/style_analysis.en.txt` | 英文 system prompt |
+| `config/prompts/style_classify.txt` | Call① 分类 prompt（路线 B） |
+| `config/prompts/style_analysis_refine.txt` | Call② 配方微调 prompt（路线 B） |
+| `config/style_recipes/*.yaml` | 风格配方库 |
+| `ai/style_recipes.py` | 配方加载、匹配、merge |
+| `docs/STYLE_RECIPE_SYSTEM.md` | 路线 B + 双次 AI 设计说明 |
 
 ---
 

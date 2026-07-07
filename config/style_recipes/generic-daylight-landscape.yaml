@@ -1,0 +1,51 @@
+id: generic-daylight-landscape
+version: 1
+name_zh: 自然日光风光（通用兜底）
+description: 子类不确定或匹配分过低时的默认起点
+
+match:
+  categories: [L]
+  subtypes: [L-自然通用]
+  keywords_zh: [风光, 户外, 自然]
+  keywords_en: [landscape, outdoor, daylight]
+
+default_confidence: 0.68
+
+parameters:
+  Exposure2012: 0.22
+  Contrast2012: 2
+  Highlights2012: -12
+  Shadows2012: 14
+  Whites2012: 0
+  Blacks2012: -6
+  Temperature: 5600
+  Tint: 0
+  Saturation: 0
+  Vibrance: 6
+  Clarity2012: 5
+
+optional_7b: {}
+
+tweak_limits:
+  Exposure2012: [-0.30, 0.30]
+  Contrast2012: [-18, 18]
+  Highlights2012: [-25, 10]
+  Shadows2012: [-10, 25]
+  Whites2012: [-20, 15]
+  Blacks2012: [-20, 10]
+  Temperature: [-600, 600]
+  Tint: [-15, 15]
+  Saturation: [-20, 20]
+  Vibrance: [-15, 18]
+  Clarity2012: [-12, 15]
+
+priority_adjustments:
+  - Exposure2012
+  - Temperature
+  - Shadows2012
+  - Vibrance
+
+editing_hints:
+  - 先判断天空与地面谁更主导曝光
+  - 自然光下 WB 以大面积中性区域为准
+  - 饱和宜克制，优先 Vibrance

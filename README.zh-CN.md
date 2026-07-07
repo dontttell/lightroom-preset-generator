@@ -16,10 +16,11 @@
 | **路径 A — 精确识别**    | 已交付 — 内嵌 XMP / sidecar → 真实 CRS 参数 → 导出 XMP                                    |
 | **路径 B — AI 辅助学习** | 已交付 — OpenAI 兼容 Vision API、用户确认后分析、参考 XMP / 可选 LUT                             |
 | **AI schema**      | `style_analysis.v1.1` — §7a 核心 11 项 + §7b 稀疏可选色彩扩展（24 项，丰富 XMP）                |
+| **风格配方库（路线 B）**  | **已落地（数据 + 合并逻辑）** — `config/style_recipes/` 共 7 条 look；双次 AI 方案已文档化，**Provider 尚未接线**（默认仍单次 legacy） |
 | **服务商配置**          | 设置页预设：**OpenAI**、**火山方舟（豆包）**、**自定义** — 自动填充 Base URL；协议仍为 `/chat/completions` |
 | **底片 LUT 试看**      | UI **v1.6** — 仅左栏                                                              |
 | **界面**             | 深色 QSS（L1）、StatusCard、学习面板、设置/导出对话框                                            |
-| **校验脚本**           | `scripts/verify_ui.py`、`scripts/verify_ai_schema.py`                           |
+| **校验脚本**           | `scripts/verify_ui.py`、`scripts/verify_ai_schema.py`、`scripts/verify_style_recipes.py`                           |
 
 
 **尚未完成：** 批量工作流、ExifTool 降级、自动化测试 / CI、英文界面、LICENSE 文件。
@@ -36,6 +37,7 @@
 - [程序如何工作](#程序如何工作)
 - [效果展示](#效果展示)
 - [AI 辅助分析（Prompt）](#ai-辅助分析prompt)
+- [风格配方库（路线 B）](#风格配方库路线-b)
 - [快速上手](#快速上手)
 - [文档指南](#文档指南)
 - [项目结构](#项目结构)
@@ -189,6 +191,31 @@ Prompt 变更记录：`[docs/PROMPT_CHANGELOG.md](docs/PROMPT_CHANGELOG.md)` · 
 
 ---
 
+## 风格配方库（路线 B）
+
+当前路径 B 使用 **单次 Vision 调用**（`style_analysis.txt` → 完整 JSON）。为在保留学习文案的同时 **稳定滑块数值**，仓库已纳入 **路线 B：风格配方库 + 可选双次 AI**。
+
+| 层次 | 状态 | 作用 |
+|------|------|------|
+| **配方 YAML** | 已交付 | 7 条典型 look（草原胶片、青橙、人像、蓝调、霓虹夜景、通用兜底），见 [`config/style_recipes/`](config/style_recipes/) |
+| **本地匹配与合并** | 已交付 | [`ai/style_recipes.py`](ai/style_recipes.py) — `match_recipe()` + `merge_recipe_with_refine()`（基准值 + 受限 delta） |
+| **双次 Prompt** | 已交付 | Call① [`style_classify.txt`](config/prompts/style_classify.txt)（只分类、不出数字）· Call② [`style_analysis_refine.txt`](config/prompts/style_analysis_refine.txt)（在配方上微调） |
+| **Provider 接线** | **待做** | 配置项 `use_recipe_pipeline: true` 尚未接入；运行时仍为 legacy 单次调用 |
+
+**动机：** AI 擅长描述风格与小幅调整；配方库提供可信 **参数起点**，避免子类判错导致 11 项核心滑块全盘偏离。
+
+**启用后的流程：**
+
+```
+参考图 → Call① 分类 → match_recipe() → Call② 微调(delta) → merge → normalize_style_analysis() → XMP / LUT
+```
+
+完整设计：[`docs/STYLE_RECIPE_SYSTEM.md`](docs/STYLE_RECIPE_SYSTEM.md) · 维护说明：[`config/style_recipes/README.md`](config/style_recipes/README.md)
+
+校验配方：`python scripts/verify_style_recipes.py`
+
+---
+
 
 
 ## 快速上手
@@ -272,6 +299,7 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 | `[docs/UI_UX_DESIGN.md](docs/UI_UX_DESIGN.md)`                                 | 人读 · 界面  | 布局、状态机、组件、深色主题；**§11 文案库** — **界面长什么样、写什么字**                |
 | `[docs/CODE_ARCHITECTURE.md](docs/CODE_ARCHITECTURE.md)`                       | 人读 · 代码  | 模块图、路径 A/B 调用链、配置、导出 — **全项目代码怎么串**                         |
 | `[docs/AI_ARCHITECTURE.md](docs/AI_ARCHITECTURE.md)`                           | 人读 · AI  | 路径 B / **AI 调用路径**、Provider、prompt 加载、校验、**改 prompt 的 SOP** |
+| `[docs/STYLE_RECIPE_SYSTEM.md](docs/STYLE_RECIPE_SYSTEM.md)`                   | 人读 · AI  | 路线 B：配方库、双次 AI 设计、merge 规则、上线清单 |
 | `[docs/AI_RESPONSE_SCHEMA.md](docs/AI_RESPONSE_SCHEMA.md)`                     | 人读 · 契约  | JSON 字段、LUT/XMP 路由、错误行为、schema 版本                           |
 | `[docs/PROMPT_CHANGELOG.md](docs/PROMPT_CHANGELOG.md)`                         | 人读 · 审计  | **Prompt 变更历史** — 每次为什么改、影响什么                               |
 | `[AGENTS.md](AGENTS.md)`                                                       | AI · 入口  | 给编码 Agent 的短指引：关键路径、检查清单                                    |
@@ -281,6 +309,10 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 | `[schemas/style_analysis.v1.1.json](schemas/style_analysis.v1.1.json)`         | 机器读      | 路径 B 当前 JSON Schema（`style_analysis.v1.1`；v1 保留作历史）         |
 | `[config/prompts/style_analysis.txt](config/prompts/style_analysis.txt)`       | 机器读 + 可审 | 运行时 system prompt（中文），发往 Vision API                         |
 | `[config/prompts/style_analysis.en.txt](config/prompts/style_analysis.en.txt)` | 机器读 + 可审 | 运行时 system prompt（英文）                                       |
+| `[config/style_recipes/*.yaml](config/style_recipes/)`                         | 机器读 + 可审 | 风格配方基准与 tweak 范围（路线 B） |
+| `[config/prompts/style_classify.txt](config/prompts/style_classify.txt)`       | 机器读 + 可审 | Call① 分类 prompt（路线 B，待接线） |
+| `[config/prompts/style_analysis_refine.txt](config/prompts/style_analysis_refine.txt)` | 机器读 + 可审 | Call② delta 微调 prompt（路线 B，待接线） |
+| `[schemas/style_classify.v1.json](schemas/style_classify.v1.json)`             | 机器读      | Call① 分类 JSON Schema |
 | `[gui/copy.py](gui/copy.py)`                                                   | 运行时      | 界面字符串；须与 `[UI_UX_DESIGN.md](docs/UI_UX_DESIGN.md)` §11 一致   |
 
 
@@ -295,6 +327,7 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 | 布局、按钮、状态、用户可见文案                     | `docs/UI_UX_DESIGN.md`（并同步 `gui/copy.py`）                              |
 | 主流程、模块、路径 A、导出                      | `docs/CODE_ARCHITECTURE.md`                                            |
 | **路径 B / AI 接口 / prompt / JSON 校验** | `docs/AI_ARCHITECTURE.md`                                              |
+| **风格配方 / 双次 AI（路线 B）** | `docs/STYLE_RECIPE_SYSTEM.md` + `config/style_recipes/` |
 | 增删 AI 返回字段                          | `docs/AI_RESPONSE_SCHEMA.md` + `schemas/` + `ai/parameter_registry.py` |
 | 改 prompt 措辞或语气                      | `config/prompts/` + `docs/PROMPT_CHANGELOG.md`                         |
 | 让 Cursor 遵守仓库约定                     | `AGENTS.md`                                                            |
@@ -309,6 +342,7 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 | ------------------------------------------------------------ | ---------------------------------- |
 | `[scripts/verify_ui.py](scripts/verify_ui.py)`               | 改 GUI / 布局后                        |
 | `[scripts/verify_ai_schema.py](scripts/verify_ai_schema.py)` | 改 AI schema、registry 或 validator 后 |
+| `[scripts/verify_style_recipes.py](scripts/verify_style_recipes.py)` | 增改 `config/style_recipes/*.yaml` 后 |
 
 
 **UI 版本：** 见窗口标题，如 `Lightroom 预设学习器 (UI 1.6.0)`。
@@ -321,16 +355,16 @@ JPG / JPEG / PNG / WebP — 拖拽或点击「打开图片」。
 
 ```
 lightroom_preset_generator/
-├── ai/                  # OpenAI 兼容 Vision 调用、schema、服务层
+├── ai/                  # OpenAI 兼容 Vision 调用、schema、服务层、style_recipes
 ├── analyzers/           # v1 规则分析器（遗留，v2 主流程已不依赖）
-├── config/              # 应用设置、AI 配置、服务商预设、prompts
+├── config/              # 应用设置、AI 配置、服务商预设、prompts、style_recipes/
 ├── core/                # 元数据检测/解析、会话模型、流水线
 ├── docs/                # 产品规格 + UI/UX 设计
 ├── generators/          # XMP 预设生成
 ├── gui/                 # PyQt6 主窗口、组件、对话框、QSS 主题
 ├── lut/                 # 本地 LUT 烘焙与底片预览
 ├── preview/             # OpenCV 预设模拟（遗留辅助）
-├── scripts/             # verify_ui.py — 启动前 UI 检查
+├── scripts/             # verify_ui.py、verify_ai_schema.py、verify_style_recipes.py
 ├── main.py              # 入口
 └── run.bat              # Windows 启动脚本
 ```
@@ -417,6 +451,7 @@ v2 相对 v1 主要变更文件
 
 ### 近期（P1）
 
+- [ ] **路线 B 双次 AI** 接入 Provider + 设置页可选开关（`use_recipe_pipeline`）
 - [ ] 扩大 metadata 样本测试 + ExifTool 降级方案
 - [ ] 导出 / AI 错误处理加固
 - [ ] 浅色主题或外观切换

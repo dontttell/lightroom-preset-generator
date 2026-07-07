@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lightroom-preset-generator/schemas/style_classify.v1.json",
+  "title": "StyleClassifyResult",
+  "description": "Call① lightweight scene/style classification (no LR slider absolute values)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "category",
+    "subtype",
+    "scene_keywords",
+    "style_hints",
+    "subtype_confidence"
+  ],
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": ["P", "L", "M"],
+      "description": "一级大类：人像 / 风光 / 混合"
+    },
+    "subtype": {
+      "type": "string",
+      "description": "子类代码，与 style_analysis prompt taxonomy 一致，如 P-室外自然光、L-自然通用"
+    },
+    "light": {
+      "type": "string",
+      "description": "光线环境简述，如 日光、阴天、黄金时刻、霓虹混合光"
+    },
+    "pre_graded": {
+      "type": "boolean",
+      "description": "画面是否像已套滤镜/重后期的 JPG"
+    },
+    "local_mask_likely": {
+      "type": "boolean",
+      "description": "是否疑似局部蒙版或主体分离"
+    },
+    "scene_keywords": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "maxItems": 12
+    },
+    "style_hints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 8
+    },
+    "subtype_confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "candidate_recipe_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 3,
+      "description": "可选：建议匹配的配方 id，见 config/style_recipes/"
+    }
+  }
+}
