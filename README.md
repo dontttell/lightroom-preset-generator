@@ -15,7 +15,7 @@ A desktop app for photography enthusiasts who want to **learn how a Lightroom lo
 | **Path A — Precise recognition** | Shipped — embedded XMP + sidecar `.xmp` → real CRS parameters → XMP export |
 | **Path B — AI learning** | Shipped — OpenAI-compatible Vision API, user-triggered analysis, reference XMP / optional LUT |
 | **AI schema** | **`style_analysis.v1.1`** — 11 core sliders (§7a) + 24 sparse optional color keys (§7b) for richer XMP |
-| **Style recipe library (Plan B)** | **Shipped (data + merge logic)** — 7 YAML looks in `config/style_recipes/`; dual-call AI pipeline documented, **not wired** to Provider yet (default: single-call legacy) |
+| **Style recipe library (Plan B)** | **Shipped** — 7 YAML looks + dual-call AI wired in Provider (default on; disable in Settings) |
 | **Provider setup** | Settings presets: **OpenAI**, **Volcengine Ark (Doubao)**, **Custom** — auto-fill Base URL; still one protocol (`/chat/completions`) |
 | **Plate LUT preview** | UI **v1.6** — left column only |
 | **UI theme** | Dark QSS (L1), StatusCard, learning panel, export/settings dialogs |
@@ -106,8 +106,9 @@ gui/main_window.run_ai_analysis()
        ├─ config/ai_config.load_ai_config()
        ├─ ai/factory.create_analyzer()
        │    └─ ai/openai_compatible_provider.analyze()
-       │         ├─ read config/prompts/style_analysis.txt (or .en.txt)
-       │         ├─ HTTP Vision API (image + system prompt)
+       │         ├─ [recipe] classify → match_recipe → refine → merge
+       │         ├─ [legacy] read config/prompts/style_analysis.txt
+       │         ├─ HTTP Vision API (1× or 2×)
        │         ├─ ai/response_parser.parse_json_content()
        │         └─ ai/validator.normalize_style_analysis()
        ├─ ai/service.style_result_to_report()
@@ -172,7 +173,7 @@ Path B today uses a **single Vision call** (`style_analysis.txt` → full JSON).
 | **Recipe YAML** | Shipped | 7 curated looks (meadow film, teal-orange, portraits, blue hour, neon night, generic fallback) in [`config/style_recipes/`](config/style_recipes/) |
 | **Local match + merge** | Shipped | [`ai/style_recipes.py`](ai/style_recipes.py) — `match_recipe()` + `merge_recipe_with_refine()` (baseline + bounded deltas) |
 | **Dual-call prompts** | Shipped | Call① [`style_classify.txt`](config/prompts/style_classify.txt) (scene only, no sliders) · Call② [`style_analysis_refine.txt`](config/prompts/style_analysis_refine.txt) (delta tweaks on recipe) |
-| **Provider wiring** | **Pending** | `use_recipe_pipeline: true` in config — not connected yet; runtime still uses legacy single call |
+| **Provider wiring** | **Shipped** | `use_recipe_pipeline` default **true**; Settings checkbox to fall back to legacy |
 
 **Why:** AI is strong at *describing* a look and *nudging* sliders; a fixed recipe anchors numeric starting points so subtype misclassification does not corrupt all 11 core values.
 
@@ -396,7 +397,7 @@ Priorities aligned with [`docs/PRODUCT_SPEC_v2.md`](docs/PRODUCT_SPEC_v2.md):
 
 ### Near term (P1)
 
-- [ ] Wire **Plan B dual-call AI** (`use_recipe_pipeline`) into Provider + optional settings toggle
+- [ ] Expand recipe library with more looks from real samples
 - [ ] Broader metadata compatibility testing + ExifTool fallback
 - [ ] Export / AI error handling hardening
 - [ ] Light theme or appearance toggle (spec §7.4 P2)

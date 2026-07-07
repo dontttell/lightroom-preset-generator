@@ -11,7 +11,7 @@ Prompt files live under `config/prompts/`. Runtime path is chosen by `analysis.l
 - **Files:** `style_classify.txt`, `style_analysis_refine.txt`, `config/style_recipes/*.yaml`, `ai/style_recipes.py`, `schemas/style_classify.v1.json`, `docs/STYLE_RECIPE_SYSTEM.md`, `scripts/verify_style_recipes.py`
 - **Schema:** new **`style_classify.v1`** (Call①); Call② refine output shape documented in `STYLE_RECIPE_SYSTEM.md` (not yet a separate JSON schema file)
 - **Motivation:** Anchor slider baselines in curated YAML recipes; AI classifies then applies bounded deltas instead of guessing all 11 core values from scratch
-- **Runtime:** **Not wired** — default remains single-call `style_analysis.v1.1`; enable via future `use_recipe_pipeline: true`
+- **Runtime:** **Wired** — default `use_recipe_pipeline: true` in `OpenAiCompatibleProvider.analyze()`; Settings checkbox to disable
 - **Recipes (7):** generic-daylight-landscape, film-lowsat-meadow, cinematic-teal-orange, soft-portrait-natural, golden-hour-portrait, blue-hour-landscape, neon-night-city
 - **Regression:** `python scripts/verify_style_recipes.py`; meadow keyword smoke test in script
 

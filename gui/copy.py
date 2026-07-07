@@ -131,6 +131,11 @@ COPY: Dict[str, str] = {
         "选择服务商后 Base URL 将自动填充。填写 API Key 与模型 ID 后，"
         "未能精确识别的图片可发起 AI 分析。图片将上传至对应接口，请遵守服务商隐私政策。"
     ),
+    "settings.use_recipe_pipeline": "使用风格配方库（双次 AI，推荐）",
+    "settings.use_recipe_pipeline_hint": (
+        "先分类再匹配 YAML 配方基准，第二次调用仅在基准上做小幅微调，参数更稳定。"
+        "关闭则回退为单次 style_analysis 分析。"
+    ),
     "about.title_app": "Lightroom 预设学习器",
     "about.body": (
         "<p>已精确识别：直接读取真实调色参数并导出 XMP 预设。<br>"

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
@@ -59,6 +60,11 @@ class SettingsDialog(QDialog):
         form.addRow("API Key", self.api_key_edit)
         form.addRow("API Base URL", self.base_url_edit)
         form.addRow(self.model_label, self.model_edit)
+
+        self.recipe_pipeline_cb = QCheckBox(C.t("settings.use_recipe_pipeline"))
+        self.recipe_pipeline_cb.setToolTip(C.t("settings.use_recipe_pipeline_hint"))
+        form.addRow("", self.recipe_pipeline_cb)
+
         layout.addLayout(form)
 
         self.preset_hint = QLabel()
@@ -91,6 +97,7 @@ class SettingsDialog(QDialog):
         self.api_key_edit.setText(self._cfg.api_key)
         self.base_url_edit.setText(self._cfg.base_url or self._current_preset().default_base_url)
         self.model_edit.setText(self._cfg.model)
+        self.recipe_pipeline_cb.setChecked(self._cfg.use_recipe_pipeline)
         self._apply_preset_ui(self._current_preset(), fill_url=False)
 
     def _current_preset(self):
@@ -139,6 +146,9 @@ class SettingsDialog(QDialog):
             xmp_min_confidence=self._cfg.xmp_min_confidence,
             use_json_mode=self._cfg.use_json_mode,
             max_retries=self._cfg.max_retries,
+            use_recipe_pipeline=self.recipe_pipeline_cb.isChecked(),
+            classify_prompt_file=self._cfg.classify_prompt_file,
+            refine_prompt_file=self._cfg.refine_prompt_file,
         )
 
     def _save(self) -> None:

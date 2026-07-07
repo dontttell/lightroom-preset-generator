@@ -19,6 +19,8 @@ LOCAL_CONFIG = ROOT / "config" / "ai_config.local.yaml"
 EXAMPLE_CONFIG = ROOT / "config" / "ai_config.example.yaml"
 DEFAULT_PROMPT_ZH = "config/prompts/style_analysis.txt"
 DEFAULT_PROMPT_EN = "config/prompts/style_analysis.en.txt"
+DEFAULT_CLASSIFY_PROMPT = "config/prompts/style_classify.txt"
+DEFAULT_REFINE_PROMPT = "config/prompts/style_analysis_refine.txt"
 
 
 @dataclass
@@ -43,11 +45,14 @@ class AiConfig:
     language: str = "zh-CN"
     prompt_file: str = ""
 
-    # 高级项（可由 yaml 覆盖；UI 暂不暴露）
+    # 高级项（可由 yaml 覆盖；部分在设置页暴露）
     lut_min_confidence: float = 0.35
     xmp_min_confidence: float = 0.25
     use_json_mode: bool = True
     max_retries: int = 2
+    use_recipe_pipeline: bool = True
+    classify_prompt_file: str = ""
+    refine_prompt_file: str = ""
 
     def is_ready(self) -> bool:
         """API 是否已足够发起分析（UI 不设「服务商」字段，仅需 Key + 模型）。"""
@@ -92,13 +97,41 @@ class AiConfig:
         )
 
     def resolved_prompt_path(self) -> str:
-        """返回实际 prompt 文件路径（相对项目根）。"""
+        """返回 legacy 单次分析 prompt 路径（相对项目根）。"""
         if self.prompt_file.strip():
             return self.prompt_file.strip()
         lang = self.language.lower()
         if lang.startswith("en"):
             return DEFAULT_PROMPT_EN
         return DEFAULT_PROMPT_ZH
+
+    def resolved_classify_prompt_path(self) -> str:
+        if self.classify_prompt_file.strip():
+            return self.classify_prompt_file.strip()
+        return DEFAULT_CLASSIFY_PROMPT
+
+    def resolved_refine_prompt_path(self) -> str:
+        if self.refine_prompt_file.strip():
+            return self.refine_prompt_file.strip()
+        return DEFAULT_REFINE_PROMPT
+
+    def classify_user_message_text(self) -> str:
+        lang = self.language.lower()
+        if lang.startswith("en"):
+            return "Classify this image. Output style_classify.v1 JSON only. Do not output LR slider values."
+        return "请对这张图片进行场景分类，仅输出 style_classify.v1 JSON，不要输出任何 LR 滑块数值。"
+
+    def refine_user_message_text(self, context_json: str) -> str:
+        lang = self.language.lower()
+        if lang.startswith("en"):
+            return (
+                f"Context (classification + matched recipe baseline):\n{context_json}\n\n"
+                "Analyze the image and output refine JSON with parameter_adjustments as deltas only."
+            )
+        return (
+            f"上下文（分类结果 + 已匹配配方基准）：\n{context_json}\n\n"
+            "请结合图片输出微调 JSON；参数须使用 parameter_adjustments（delta 模式），勿输出完整 parameters。"
+        )
 
     def user_message_text(self) -> str:
         lang = self.language.lower()
@@ -114,7 +147,8 @@ class AiConfig:
             preset = get_preset(self.resolved_provider_preset())
             preset_label = preset.label if preset else self.resolved_provider_preset()
             url_hint = self.base_url.strip() or self.resolved_base_url()
-            return f"已配置 · {preset_label} · {self.model} · {url_hint}"
+            mode = "配方库双次" if self.use_recipe_pipeline else "单次分析"
+            return f"已配置 · {preset_label} · {self.model} · {mode} · {url_hint}"
         return "未配置 — 请在设置中填写 API Key 与模型"
 
 
@@ -146,6 +180,9 @@ def load_ai_config() -> AiConfig:
         xmp_min_confidence=float(analysis.get("xmp_min_confidence", 0.25)),
         use_json_mode=bool(analysis.get("use_json_mode", True)),
         max_retries=int(analysis.get("max_retries", 2)),
+        use_recipe_pipeline=bool(analysis.get("use_recipe_pipeline", True)),
+        classify_prompt_file=str(analysis.get("classify_prompt_file") or ""),
+        refine_prompt_file=str(analysis.get("refine_prompt_file") or ""),
     )
 
 
@@ -166,6 +203,9 @@ def save_ai_config(cfg: AiConfig) -> None:
             "xmp_min_confidence": cfg.xmp_min_confidence,
             "use_json_mode": cfg.use_json_mode,
             "max_retries": cfg.max_retries,
+            "use_recipe_pipeline": cfg.use_recipe_pipeline,
+            "classify_prompt_file": cfg.classify_prompt_file,
+            "refine_prompt_file": cfg.refine_prompt_file,
         },
     }
     with open(LOCAL_CONFIG, "w", encoding="utf-8") as f:

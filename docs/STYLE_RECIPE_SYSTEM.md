@@ -1,7 +1,6 @@
 # 风格配方库 + 双次 AI 调用方案（路线 B）
 
-> **状态：** 配方库与匹配逻辑已落地（`config/style_recipes/`、`ai/style_recipes.py`）；  
-> **双次 AI 管线** 见下文设计，默认仍走单次 `style_analysis.v1.1`，通过 `analysis.use_recipe_pipeline` 开关启用（待接线）。
+> **状态：** 配方库与双次 AI 管线 **已接入** `OpenAiCompatibleProvider`（默认 `use_recipe_pipeline: true`）；设置页可关闭回退 legacy 单次调用。
 
 ---
 
@@ -116,8 +115,8 @@ recipe = match_recipe(classify_result)  # ai/style_recipes.py
 
 | 模式 | 配置 | 行为 |
 |------|------|------|
-| **legacy**（默认） | `use_recipe_pipeline: false` | 现有 `style_analysis.txt` 单次调用 |
-| **recipe** | `use_recipe_pipeline: true` | Call① + 匹配 + Call② + merge |
+| **legacy** | `use_recipe_pipeline: false` | 现有 `style_analysis.txt` 单次调用 |
+| **recipe**（默认） | `use_recipe_pipeline: true` | Call① + 匹配 + Call② + merge |
 
 **灰度上线：** 设置页或 `ai_config.local.yaml` 开关；日志记录 `matched_recipe_id` 供对比。
 
@@ -147,12 +146,12 @@ recipe = match_recipe(classify_result)  # ai/style_recipes.py
 |------|------|------|
 | 已有 | `ai/style_recipes.py` | 加载、匹配、merge |
 | 已有 | `config/style_recipes/*.yaml` | 配方数据 |
-| 待做 | `ai/openai_compatible_provider.py` | `analyze_recipe_pipeline()` 双次调用 |
-| 待做 | `ai/style_classify.py` | 解析 / 校验 Call① |
-| 待做 | `ai/style_refine.py` | 解析 / 校验 Call② |
-| 待做 | `config/ai_config.py` | `use_recipe_pipeline` |
-| 待做 | `gui/settings_dialog.py` | 可选开关 |
-| 待做 | `scripts/verify_style_recipes.py` | 配方 YAML 校验 |
+| 已有 | `ai/openai_compatible_provider.py` | `analyze_recipe_pipeline()` 双次调用 |
+| 已有 | `ai/style_classify.py` | 解析 / 校验 Call① |
+| 已有 | `ai/style_refine.py` | 解析 / 校验 Call② |
+| 已有 | `config/ai_config.py` | `use_recipe_pipeline` |
+| 已有 | `gui/settings_dialog.py` | 可选开关 |
+| 已有 | `scripts/verify_style_recipes.py` | 配方 YAML 校验 |
 
 **Call② 之后** 仍走现有 `normalize_style_analysis()`，保证 XMP / LUT / 学习面板不变。
 

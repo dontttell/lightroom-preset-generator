@@ -15,3 +15,7 @@ analysis:
   xmp_min_confidence: 0.25
   use_json_mode: true
   max_retries: 2
+  # 路线 B：分类 → 匹配配方 → 微调（默认开启；可在设置页关闭）
+  use_recipe_pipeline: true
+  # classify_prompt_file: ""
+  # refine_prompt_file: ""

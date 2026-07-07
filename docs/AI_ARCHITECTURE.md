@@ -38,7 +38,7 @@ gui/main_window.run_ai_analysis()
        └─ build_lut_for_report()               [ai/service.py → lut/lut_generator.py]
 ```
 
-**路线 B — 配方库 + 双次 AI（`use_recipe_pipeline: true` 时，待接线）：**
+**路线 B — 配方库 + 双次 AI（`use_recipe_pipeline: true`，默认开启）：**
 
 见 [`STYLE_RECIPE_SYSTEM.md`](./STYLE_RECIPE_SYSTEM.md)。概要：Call① `style_classify.v1` → `ai/style_recipes.match_recipe()` → Call② `style_analysis_refine`（delta）→ `merge_recipe_with_refine()` → 仍走 `normalize_style_analysis()`。
 

@@ -16,7 +16,7 @@
 | **路径 A — 精确识别**    | 已交付 — 内嵌 XMP / sidecar → 真实 CRS 参数 → 导出 XMP                                    |
 | **路径 B — AI 辅助学习** | 已交付 — OpenAI 兼容 Vision API、用户确认后分析、参考 XMP / 可选 LUT                             |
 | **AI schema**      | `style_analysis.v1.1` — §7a 核心 11 项 + §7b 稀疏可选色彩扩展（24 项，丰富 XMP）                |
-| **风格配方库（路线 B）**  | **已落地（数据 + 合并逻辑）** — `config/style_recipes/` 共 7 条 look；双次 AI 方案已文档化，**Provider 尚未接线**（默认仍单次 legacy） |
+| **风格配方库（路线 B）**  | **已交付** — 7 条配方 + Provider 双次 AI 已接线（默认开启；设置页可关闭） |
 | **服务商配置**          | 设置页预设：**OpenAI**、**火山方舟（豆包）**、**自定义** — 自动填充 Base URL；协议仍为 `/chat/completions` |
 | **底片 LUT 试看**      | UI **v1.6** — 仅左栏                                                              |
 | **界面**             | 深色 QSS（L1）、StatusCard、学习面板、设置/导出对话框                                            |
@@ -124,8 +124,9 @@ gui/main_window.run_ai_analysis()
        ├─ config/ai_config.load_ai_config()
        ├─ ai/factory.create_analyzer()
        │    └─ ai/openai_compatible_provider.analyze()
-       │         ├─ 读取 config/prompts/style_analysis.txt（或 .en.txt）
-       │         ├─ HTTP Vision API（图片 + system prompt）
+       │         ├─ [recipe] 分类 → match_recipe → 微调 → merge
+       │         ├─ [legacy] 读取 config/prompts/style_analysis.txt
+       │         ├─ HTTP Vision API（1 次或 2 次）
        │         ├─ ai/response_parser.parse_json_content()
        │         └─ ai/validator.normalize_style_analysis()
        ├─ ai/service.style_result_to_report()
@@ -200,7 +201,7 @@ Prompt 变更记录：`[docs/PROMPT_CHANGELOG.md](docs/PROMPT_CHANGELOG.md)` · 
 | **配方 YAML** | 已交付 | 7 条典型 look（草原胶片、青橙、人像、蓝调、霓虹夜景、通用兜底），见 [`config/style_recipes/`](config/style_recipes/) |
 | **本地匹配与合并** | 已交付 | [`ai/style_recipes.py`](ai/style_recipes.py) — `match_recipe()` + `merge_recipe_with_refine()`（基准值 + 受限 delta） |
 | **双次 Prompt** | 已交付 | Call① [`style_classify.txt`](config/prompts/style_classify.txt)（只分类、不出数字）· Call② [`style_analysis_refine.txt`](config/prompts/style_analysis_refine.txt)（在配方上微调） |
-| **Provider 接线** | **待做** | 配置项 `use_recipe_pipeline: true` 尚未接入；运行时仍为 legacy 单次调用 |
+| **Provider 接线** | **已交付** | 默认 `use_recipe_pipeline: true`；设置页可关闭回退 legacy |
 
 **动机：** AI 擅长描述风格与小幅调整；配方库提供可信 **参数起点**，避免子类判错导致 11 项核心滑块全盘偏离。
 
@@ -451,7 +452,7 @@ v2 相对 v1 主要变更文件
 
 ### 近期（P1）
 
-- [ ] **路线 B 双次 AI** 接入 Provider + 设置页可选开关（`use_recipe_pipeline`）
+- [ ] 根据样张扩充配方库
 - [ ] 扩大 metadata 样本测试 + ExifTool 降级方案
 - [ ] 导出 / AI 错误处理加固
 - [ ] 浅色主题或外观切换
